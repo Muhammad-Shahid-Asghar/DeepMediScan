@@ -1,3 +1,4 @@
+🚀 Live Demo: https://huggingface.co/spaces/Shahid-Asghar/DeepMediScan
 <div align="center">
 
 # 🔬 DeepMediScan
