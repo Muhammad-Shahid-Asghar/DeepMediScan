@@ -1,0 +1,2203 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DeepMediScan — 22-Class Skin Disease Detection</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* ── DermAI Professional Theme — Deep Navy + Emerald ── */
+  --bg         : #0a0a0b;
+  --sidebar    : #0f0f10;
+  --surface    : #141415;
+  --card       : #1a1a1c;
+  --card2      : #202023;
+  --border     : rgba(16,185,129,0.18);
+  --border2    : rgba(255,255,255,0.07);
+  --text       : #f0f0f0;
+  --muted      : #6b7280;
+  --accent     : #10b981;
+  --accent2    : #059669;
+  --glow       : rgba(16,185,129,0.12);
+  --green      : #34d399;
+  --amber      : #fbbf24;
+  --red        : #f87171;
+  --purple     : #a78bfa;
+  --font-head  : 'Syne', sans-serif;
+  --font-body  : 'DM Sans', sans-serif;
+  --font-urdu  : 'Noto Nastaliq Urdu', 'DM Sans', serif;
+  --font-hindi : 'Noto Sans Devanagari', 'DM Sans', sans-serif;
+  --radius     : 14px;
+  --radius-sm  : 9px;
+  --sidebar-w  : 255px;
+  --icon-bar-w : 58px;
+}
+
+/* ── CLAUDE.AI STYLE ICON BAR (narrow left rail) ── */
+.icon-bar {
+  width: var(--icon-bar-w);
+  background: var(--sidebar);
+  border-right: 1px solid var(--border2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 0;
+  gap: 4px;
+  height: 100vh;
+  flex-shrink: 0;
+  z-index: 20;
+  position: relative;
+}
+[data-theme="light"] .icon-bar { background: #ffffff; border-right: 1px solid #e2e8f0; }
+
+.icon-bar-logo {
+  width: 36px; height: 36px;
+  margin-bottom: 10px;
+  display: flex; align-items: center; justify-content: center;
+  filter: drop-shadow(0 2px 6px rgba(11,23,48,0.35));
+  cursor: pointer;
+}
+.icon-bar-logo .dms-logo-svg { width: 100%; height: 100%; }
+
+.icon-btn {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  transition: all 0.18s;
+  position: relative;
+}
+.icon-btn:hover { background: rgba(255,255,255,0.07); color: var(--text); }
+.icon-btn.active { background: rgba(16,185,129,0.12); color: var(--accent); }
+[data-theme="light"] .icon-btn:hover { background: rgba(0,0,0,0.05); color: #111; }
+[data-theme="light"] .icon-btn.active { background: rgba(5,150,105,0.1); color: var(--accent); }
+
+.icon-bar-divider { width: 32px; height: 1px; background: var(--border2); margin: 4px 0; }
+
+.icon-bar-bottom { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+
+/* User avatar popup */
+.user-avatar-btn {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent2), var(--purple));
+  border: none;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: #fff;
+  font-family: var(--font-head);
+  transition: all 0.2s;
+  position: relative;
+}
+.user-avatar-btn:hover { transform: scale(1.08); box-shadow: 0 0 0 3px rgba(16,185,129,0.3); }
+
+/* Popup menu */
+.user-popup {
+  position: fixed;
+  bottom: 70px;
+  left: 10px;
+  width: 230px;
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(6px) scale(0.97);
+  transition: all 0.2s cubic-bezier(0.16,1,0.3,1);
+  overflow: hidden;
+}
+.user-popup.open { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+[data-theme="light"] .user-popup { background: #ffffff; border-color: #e2e8f0; box-shadow: 0 8px 32px rgba(0,0,0,0.12); }
+
+.user-popup-email {
+  padding: 12px 14px 8px;
+  font-size: 11px;
+  color: var(--muted);
+  font-family: var(--font-body);
+  border-bottom: 1px solid var(--border2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.popup-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text);
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: background 0.15s;
+  border: none; background: none; width: 100%; text-align: left;
+}
+.popup-item:hover { background: rgba(255,255,255,0.05); }
+[data-theme="light"] .popup-item:hover { background: rgba(0,0,0,0.04); }
+.popup-item-left { display: flex; align-items: center; gap: 9px; }
+.popup-item-icon { font-size: 15px; width: 20px; text-align: center; }
+.popup-item-shortcut { font-size: 11px; color: var(--muted); }
+.popup-item.blue { color: #3b82f6; }
+.popup-item.red:hover { color: var(--red); }
+.popup-divider { height: 1px; background: var(--border2); margin: 2px 0; }
+/* ── LIGHT THEME OVERRIDES ── */
+[data-theme="light"] {
+  /* ── DermAI Light — Clinical White + Emerald ── */
+  --bg         : #fafafa;
+  --sidebar    : #ffffff;
+  --surface    : #f4f4f5;
+  --card       : #ffffff;
+  --card2      : #f0fdf4;
+  --border     : rgba(5,150,105,0.2);
+  --border2    : rgba(0,0,0,0.07);
+  --text       : #111111;
+  --muted      : #71717a;
+  --accent     : #059669;
+  --accent2    : #047857;
+  --glow       : rgba(5,150,105,0.08);
+  --green      : #059669;
+  --amber      : #d97706;
+  --red        : #dc2626;
+  --purple     : #7c3aed;
+}
+[data-theme="light"] body { background: var(--bg); color: var(--text); }
+[data-theme="light"] .sidebar { background: #ffffff; border-right: 1px solid #e2e8f0; }
+[data-theme="light"] .topbar { background: #ffffff; border-bottom: 1px solid #e2e8f0; }
+[data-theme="light"] .input-bar { background: #ffffff; border-top: 1px solid #e2e8f0; }
+[data-theme="light"] .auth-overlay { background: rgba(240,244,248,0.97); }
+[data-theme="light"] .auth-box { background: #ffffff; border-color: #e2e8f0; }
+[data-theme="light"] .auth-box::before { background: linear-gradient(90deg, #059669, #10b981); }
+[data-theme="light"] .auth-field input { background: #f8fafc; border-color: #e2e8f0; color: #0f172a; }
+[data-theme="light"] .auth-field input::placeholder { color: #94a3b8; }
+[data-theme="light"] .auth-tabs { background: #f1f5f9; }
+[data-theme="light"] .auth-tab.active { background: #ffffff; color: #059669; }
+[data-theme="light"] .msg-ai-content { background: #ffffff; border-color: #e2e8f0; }
+[data-theme="light"] .result-card { background: #f8fafc; border-color: #e2e8f0; }
+[data-theme="light"] .input-row { background: #ffffff; border-color: #e2e8f0; }
+[data-theme="light"] .plus-menu { background: #ffffff; border-color: #e2e8f0; box-shadow: 0 8px 32px rgba(0,0,0,0.12); }
+[data-theme="light"] .camera-modal { background: #ffffff; border-color: #e2e8f0; }
+[data-theme="light"] .history-chat-item:hover { background: rgba(0,0,0,0.04); }
+[data-theme="light"] .user-pill { background: #f1f5f9; border-color: #e2e8f0; }
+[data-theme="light"] .model-badge { background: #f8fafc; border-color: #e2e8f0; }
+[data-theme="light"] #modelSelector { background: #f1f5f9; border-color: #e2e8f0; color: #0f172a; }
+[data-theme="light"] .msg-user-bubble { background: rgba(5,150,105,0.07); border-color: rgba(5,150,105,0.2); }
+[data-theme="light"] .chatbot-window { background: #ffffff; border-color: #e2e8f0; }
+[data-theme="light"] .cb-input { background: #f8fafc; border-color: #e2e8f0; color: #0f172a; }
+[data-theme="light"] .cb-msg.bot .cb-msg-bubble { background: #f1f5f9; border-color: #e2e8f0; color: #0f172a; }
+[data-theme="light"] .cb-msg.user .cb-msg-bubble { background: rgba(5,150,105,0.08); border-color: rgba(5,150,105,0.2); color: #111111; }
+[data-theme="light"] .cb-input-row { background: #f8fafc; }
+[data-theme="light"] .cb-lang-toggle { background: #f1f5f9; }
+[data-theme="light"] .btn-new-chat { background: rgba(5,150,105,0.07); border-color: rgba(5,150,105,0.25); }
+[data-theme="light"] body::before { background: radial-gradient(ellipse 60% 40% at 20% 20%, rgba(5,150,105,0.05) 0%, transparent 60%), radial-gradient(ellipse 50% 50% at 80% 80%, rgba(16,185,129,0.03) 0%, transparent 60%); }
+[data-theme="light"] .logo-text h1 { color: #0f172a; }
+[data-theme="light"] .topbar-title { color: #0f172a; }
+[data-theme="light"] .welcome-state h2 { background: linear-gradient(135deg, #111111 0%, #059669 55%, #10b981 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+
+[data-theme="light"] .cb-header { background: var(--card2); border-bottom: 1px solid #e2e8f0; }
+[data-theme="light"] .chatbot-window { background: #ffffff; border-color: #e2e8f0; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+[data-theme="light"] .chatbot-fab { box-shadow: 0 4px 24px rgba(5,150,105,0.35); }
+[data-theme="light"] .cb-msg.user .cb-msg-bubble { background: rgba(14,165,233,0.08); border-color: rgba(14,165,233,0.2); }
+[data-theme="light"] .cb-quick-btn { background: rgba(5,150,105,0.06); border-color: rgba(5,150,105,0.2); color: var(--accent); }
+[data-theme="light"] .cb-quick-btn:hover { background: rgba(5,150,105,0.13); border-color: var(--accent); }
+[data-theme="light"] .auth-overlay { background: rgba(240,244,248,0.97); }
+/* ── THEME TOGGLE BUTTON ── */
+.btn-theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 5px 12px 5px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  font-family: var(--font-head);
+  transition: all 0.2s;
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+}
+.btn-theme-toggle:hover { background: rgba(255,255,255,0.10); color: var(--text); border-color: var(--border); }
+[data-theme="light"] .btn-theme-toggle { background: rgba(0,0,0,0.04); border-color: #e2e8f0; color: #64748b; }
+[data-theme="light"] .btn-theme-toggle:hover { background: rgba(0,0,0,0.08); color: #0f172a; }
+
+/* ===== Settings button ===== */
+.btn-settings {
+  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border2);
+  border-radius: 50%;
+  cursor: pointer; color: var(--muted);
+  transition: all 0.2s; flex-shrink: 0;
+}
+.btn-settings:hover { background: rgba(255,255,255,0.10); color: var(--text); border-color: var(--border); transform: rotate(40deg); }
+[data-theme="light"] .btn-settings { background: rgba(0,0,0,0.04); border-color: #e2e8f0; color: #64748b; }
+[data-theme="light"] .btn-settings:hover { background: rgba(0,0,0,0.08); color: #0f172a; }
+
+/* ===== Settings overlay + panel ===== */
+.settings-overlay {
+  position: fixed; inset: 0; z-index: 600;
+  background: rgba(5,8,16,0.55); backdrop-filter: blur(2px);
+  opacity: 0; visibility: hidden; transition: opacity 0.25s, visibility 0.25s;
+}
+.settings-overlay.open { opacity: 1; visibility: visible; }
+.settings-panel {
+  position: fixed; top: 0; right: 0; z-index: 601;
+  width: 380px; max-width: 90vw; height: 100%;
+  background: var(--sidebar);
+  border-left: 1px solid var(--border2);
+  box-shadow: -16px 0 50px rgba(0,0,0,0.4);
+  transform: translateX(100%); transition: transform 0.32s cubic-bezier(0.16,1,0.3,1);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.settings-panel.open { transform: translateX(0); }
+[data-theme="light"] .settings-panel { background: #ffffff; border-left: 1px solid #e2e8f0; }
+
+.settings-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 20px; border-bottom: 1px solid var(--border2); flex-shrink: 0;
+}
+.settings-head-title { display: flex; align-items: center; gap: 12px; }
+.settings-head-logo { width: 36px; height: 36px; flex-shrink: 0; filter: drop-shadow(0 2px 5px rgba(11,23,48,0.3)); }
+.settings-head-title h3 { font-family: var(--font-head); font-size: 17px; font-weight: 800; color: var(--text); }
+.settings-head-title span { font-size: 11px; color: var(--muted); }
+.settings-close {
+  width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border2);
+  background: transparent; color: var(--muted); cursor: pointer; font-size: 13px;
+  transition: all 0.2s; flex-shrink: 0;
+}
+.settings-close:hover { background: rgba(248,113,113,0.12); color: var(--red); border-color: rgba(248,113,113,0.3); }
+
+.settings-body { flex: 1; overflow-y: auto; padding: 18px 20px 28px; }
+.settings-group { margin-bottom: 26px; }
+.settings-group-label {
+  font-family: var(--font-head); font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent);
+  margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border2);
+}
+.settings-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 8px 0; }
+.settings-row-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.settings-row-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.settings-row-sub { font-size: 11px; color: var(--muted); }
+
+.seg-control { display: flex; background: var(--surface); border: 1px solid var(--border2); border-radius: 9px; padding: 2px; flex-shrink: 0; }
+.seg-btn { border: none; background: transparent; color: var(--muted); font-family: var(--font-head); font-size: 11px; font-weight: 600; padding: 5px 14px; border-radius: 7px; cursor: pointer; transition: all 0.18s; }
+.seg-btn.active { background: var(--accent); color: #fff; }
+[data-theme="light"] .seg-btn.active { color: #fff; }
+
+.settings-select, .settings-input {
+  background: var(--surface); border: 1px solid var(--border2); border-radius: 8px;
+  color: var(--text); font-family: var(--font-body); font-size: 12px; padding: 7px 10px;
+  outline: none; cursor: pointer; transition: border-color 0.2s; max-width: 170px;
+}
+.settings-select:focus, .settings-input:focus { border-color: var(--accent); }
+.settings-inline { display: flex; gap: 8px; margin-top: 4px; }
+.settings-input { flex: 1; max-width: none; cursor: text; }
+.settings-btn-sm {
+  background: var(--accent); color: #fff; border: none; border-radius: 8px;
+  font-family: var(--font-head); font-size: 12px; font-weight: 600; padding: 7px 16px;
+  cursor: pointer; transition: opacity 0.2s; white-space: nowrap;
+}
+.settings-btn-sm:hover { opacity: 0.88; }
+.settings-btn-danger {
+  background: transparent; color: var(--red); border: 1px solid rgba(248,113,113,0.3);
+  border-radius: 8px; font-family: var(--font-head); font-size: 12px; font-weight: 600;
+  padding: 7px 14px; cursor: pointer; transition: all 0.2s; white-space: nowrap; flex-shrink: 0;
+}
+.settings-btn-danger:hover { background: rgba(248,113,113,0.12); }
+
+.settings-note {
+  font-size: 11px; line-height: 1.55; color: var(--muted); margin-top: 10px;
+  background: rgba(251,191,36,0.06); border: 1px solid rgba(251,191,36,0.18);
+  border-radius: 8px; padding: 9px 11px;
+}
+.settings-note strong { color: var(--amber); font-weight: 600; }
+
+.settings-status { display: flex; align-items: center; gap: 7px; margin-top: 8px; font-size: 11px; color: var(--muted); }
+.settings-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+.settings-dot.on { background: var(--green); box-shadow: 0 0 8px var(--green); }
+.settings-dot.off { background: var(--red); }
+
+.settings-about { display: flex; gap: 13px; align-items: flex-start; background: var(--surface); border: 1px solid var(--border2); border-radius: 12px; padding: 14px; }
+.settings-about-logo { width: 44px; height: 44px; flex-shrink: 0; }
+.settings-about-text { display: flex; flex-direction: column; gap: 3px; }
+.settings-about-text strong { font-family: var(--font-head); font-size: 14px; font-weight: 800; color: var(--text); }
+.settings-about-text span { font-size: 11px; color: var(--muted); line-height: 1.4; }
+.settings-about-credit { margin-top: 5px; font-size: 10px !important; color: var(--muted); opacity: 0.85; }
+
+@media (max-width: 520px) { .settings-panel { width: 100%; } }
+.theme-toggle-icon { font-size: 15px; line-height: 1; transition: transform 0.4s cubic-bezier(0.16,1,0.3,1); }
+.btn-theme-toggle:hover .theme-toggle-icon { transform: rotate(20deg); }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.65;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  transition: background 0.25s, color 0.25s;
+}
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--sidebar);
+  border-right: 1px solid var(--border2);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  height: 100vh;
+  overflow: hidden;
+  transition: width 0.3s ease, opacity 0.3s ease;
+  position: relative;
+  z-index: 10;
+}
+.sidebar.collapsed { width: 0; opacity: 0; pointer-events: none; }
+.sidebar-header {
+  padding: 1.2rem 1rem;
+  border-bottom: 1px solid var(--border2);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.logo-icon {
+  width: 38px; height: 38px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 6px rgba(11,23,48,0.35));
+}
+.dms-logo-svg { width: 100%; height: 100%; display: block; }
+.logo-text h1 { font-family: var(--font-head); font-size: 16px; font-weight: 800; color: var(--text); white-space: nowrap; }
+.logo-text p  { font-size: 10px; color: var(--muted); white-space: nowrap; }
+.btn-new-chat {
+  margin: 0.75rem;
+  background: rgba(16,185,129,0.07);
+  border: 1px solid rgba(16,185,129,0.2);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  color: var(--accent);
+  font-family: var(--font-head);
+  font-size: 13px; font-weight: 700;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 8px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.btn-new-chat:hover { background: rgba(16,185,129,0.13); border-color: var(--accent); }
+.sidebar-section-label {
+  font-size: 10px; font-family: var(--font-head); font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--muted); padding: 0.5rem 1rem 0.3rem; flex-shrink: 0;
+}
+.chat-history-list { flex: 1; overflow-y: auto; padding: 0 0.5rem; display: flex; flex-direction: column; gap: 2px; }
+.chat-history-list::-webkit-scrollbar { width: 4px; }
+.chat-history-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+.history-chat-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: var(--radius-sm); cursor: pointer; transition: background 0.15s; min-width: 0; }
+.history-chat-item:hover { background: rgba(255,255,255,0.04); }
+.history-thumb { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; flex-shrink: 0; background: var(--surface); border: 1px solid var(--border2); }
+.history-thumb-chat { display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.history-chat-info { min-width: 0; flex: 1; }
+.history-chat-name { font-size: 12px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.history-chat-sub  { font-size: 10px; color: var(--muted); margin-top: 1px; }
+.history-chat-conf { font-size: 11px; font-family: var(--font-head); font-weight: 700; flex-shrink: 0; }
+.sidebar-footer { padding: 0.75rem; border-top: 1px solid var(--border2); flex-shrink: 0; }
+.model-badge { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: var(--radius-sm); background: rgba(255,255,255,0.02); border: 1px solid var(--border2); }
+.model-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); flex-shrink: 0; box-shadow: 0 0 6px var(--green); }
+.model-label { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#modelSelector:hover { border-color: rgba(56,189,248,0.3); }
+#modelSelector option:disabled { color: #475569; }
+
+/* MAIN */
+.main { flex: 1; display: flex; flex-direction: column; height: 100vh; min-width: 0; position: relative; }
+.topbar { display: flex; align-items: center; gap: 10px; padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--border2); flex-shrink: 0; background: var(--bg); }
+.btn-toggle-sidebar { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; padding: 4px 6px; border-radius: 6px; transition: color 0.2s, background 0.2s; flex-shrink: 0; }
+.btn-toggle-sidebar:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+.topbar-title { font-family: var(--font-head); font-size: 15px; font-weight: 700; color: var(--text); flex: 1; }
+.badge-api { font-size: 10px; padding: 3px 10px; border-radius: 20px; border: 1px solid var(--border); color: var(--accent); background: rgba(56,189,248,0.05); font-family: var(--font-head); font-weight: 600; letter-spacing: 0.05em; white-space: nowrap; }
+.user-pill { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.04); border: 1px solid var(--border2); border-radius: 20px; padding: 5px 10px 5px 6px; cursor: pointer; transition: all 0.2s; }
+.user-pill:hover { background: rgba(255,255,255,0.08); }
+.user-avatar { width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg, var(--accent2), var(--purple)); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; font-family: var(--font-head); flex-shrink: 0; }
+.user-name { font-size: 12px; font-family: var(--font-head); font-weight: 600; color: var(--text); white-space: nowrap; }
+.btn-logout { font-size: 11px; color: var(--muted); background: none; border: none; cursor: pointer; padding: 2px 6px; border-radius: 4px; transition: color 0.2s; }
+.btn-logout:hover { color: var(--red); }
+
+/* CHAT */
+.chat-area { flex: 1; overflow-y: auto; padding: 1.5rem 2.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
+.chat-area > .msg, .chat-area > .welcome-state { width: 100%; max-width: 1150px; margin-left: auto; margin-right: auto; }
+.chat-area::-webkit-scrollbar { width: 5px; }
+.chat-area::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+.welcome-state { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; text-align: center; padding: 2rem; gap: 1rem; }
+.welcome-asterisk { width: 84px; height: 84px; margin: 0 auto 4px; filter: drop-shadow(0 6px 20px rgba(11,23,48,0.45)); }
+.welcome-asterisk .dms-logo-svg { width: 100%; height: 100%; }
+.welcome-state h2 { font-family: var(--font-head); font-size: clamp(22px,4vw,36px); font-weight: 800; letter-spacing: -0.5px; background: linear-gradient(135deg, #fff 0%, var(--accent) 60%, var(--purple) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+[data-theme="light"] .welcome-state h2 { background: linear-gradient(135deg, #111 0%, #059669 60%, #a78bfa 100%); -webkit-background-clip: text; background-clip: text; }
+.welcome-state p { color: var(--muted); font-size: 14px; max-width: 380px; font-weight: 300; }
+.stats-row { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
+.stat { text-align: center; }
+.stat-val { font-family: var(--font-head); font-size: 20px; font-weight: 700; color: var(--accent); }
+.stat-label { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.msg { display: flex; flex-direction: column; gap: 8px; animation: fadeUp 0.3s ease; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.msg-user { align-items: flex-end; }
+.msg-user-bubble { background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.2); border-radius: 16px 16px 4px 16px; padding: 11px 16px; max-width: 70%; display: flex; gap: 10px; align-items: center; }
+.msg-user-img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
+.msg-user-info { min-width: 0; }
+.msg-user-filename { font-size: 12px; color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+.msg-user-size { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.msg-ai { align-items: flex-start; }
+.msg-ai-avatar { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; filter: drop-shadow(0 2px 5px rgba(11,23,48,0.3)); overflow: hidden; }
+.msg-ai-avatar .dms-logo-svg { width: 100%; height: 100%; }
+.msg-ai-row { display: flex; gap: 10px; align-items: flex-start; width: 100%; }
+.msg-ai-content { flex: 1; background: var(--card); border: 1px solid var(--border2); border-radius: 4px 16px 16px 16px; padding: 1.25rem 1.5rem; max-width: none; position: relative; overflow: hidden; }
+.msg-ai-content::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, #059669, #10b981); }
+/* Readable AI answer text */
+.ai-answer-text { font-size: 15.5px; line-height: 1.75; color: var(--text); letter-spacing: 0.1px; }
+.ai-answer-text .ai-heading { font-family: var(--font-head); font-size: 15px; font-weight: 700; color: var(--accent); margin: 16px 0 6px; padding-bottom: 4px; border-bottom: 1px solid var(--border2); }
+.ai-answer-text .ai-heading:first-child { margin-top: 0; }
+.ai-answer-text .ai-bullet { margin: 4px 0 4px 6px; padding-left: 4px; }
+.ai-answer-text.urdu .ai-heading { font-family: var(--font-urdu); font-size: 18px; text-align: right; }
+.ai-answer-text.urdu .ai-bullet { margin: 6px 6px 6px 0; text-align: right; }
+/* Urdu — Nastaliq, RTL, larger size + generous line-height for the cursive script */
+.ai-answer-text.urdu, .cb-msg-bubble.urdu, .msg-user-filename.urdu {
+  font-family: var(--font-urdu);
+  direction: rtl; text-align: right;
+  font-size: 20px; line-height: 2.6;
+  letter-spacing: 0;
+  word-spacing: 1px;
+}
+/* Hindi / Devanagari — Noto Sans Devanagari, slightly larger */
+.ai-answer-text.hindi, .cb-msg-bubble.hindi, .msg-user-filename.hindi {
+  font-family: var(--font-hindi);
+  font-size: 16.5px; line-height: 1.9;
+}
+.result-top { display: flex; gap: 1rem; align-items: flex-start; flex-wrap: wrap; margin-bottom: 1rem; }
+.result-img-wrap { position: relative; flex-shrink: 0; }
+.severity-badge { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); padding: 2px 10px; border-radius: 20px; font-size: 10px; font-family: var(--font-head); font-weight: 700; white-space: nowrap; letter-spacing: 0.05em; }
+.result-info { flex: 1; min-width: 180px; }
+.disease-name { font-family: var(--font-head); font-size: 22px; font-weight: 800; color: var(--text); line-height: 1.2; margin-bottom: 3px; }
+.disease-urdu { font-size: 16px; color: var(--accent); margin-bottom: 10px; direction: rtl; }
+.confidence-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.confidence-bar-wrap { flex: 1; height: 6px; background: var(--border2); border-radius: 3px; overflow: hidden; }
+.confidence-bar { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #059669, #10b981); transition: width 1s cubic-bezier(0.16,1,0.3,1); }
+.confidence-pct { font-family: var(--font-head); font-size: 18px; font-weight: 800; color: var(--accent); white-space: nowrap; }
+.result-desc { font-size: 13px; color: var(--muted); line-height: 1.65; margin-bottom: 10px; }
+.advice-box { background: rgba(56,189,248,0.05); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 10px 12px; font-size: 13px; color: var(--text); line-height: 1.6; }
+.advice-box strong { color: var(--accent); }
+.result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 1rem; }
+@media (max-width: 500px) { .result-grid { grid-template-columns: 1fr; } }
+.result-card { background: var(--card2); border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 1rem; }
+.result-card h4 { font-family: var(--font-head); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.75rem; }
+.top3-item { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.top3-item:last-child { margin-bottom: 0; }
+.rank-badge { width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-family: var(--font-head); font-size: 11px; font-weight: 800; flex-shrink: 0; }
+.rank-1 { background: rgba(56,189,248,0.15); color: var(--accent); }
+.rank-2 { background: rgba(167,139,250,0.12); color: var(--purple); }
+.rank-3 { background: rgba(255,255,255,0.06); color: var(--muted); }
+.top3-info { flex: 1; min-width: 0; }
+.top3-name { font-size: 12px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.top3-bar-wrap { height: 3px; background: var(--border2); border-radius: 2px; margin-top: 3px; }
+.top3-bar { height: 100%; border-radius: 2px; transition: width 1.2s cubic-bezier(0.16,1,0.3,1); }
+.top3-pct { font-family: var(--font-head); font-size: 12px; font-weight: 700; color: var(--text); white-space: nowrap; }
+.prob-item { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+.prob-label { font-size: 10px; color: var(--muted); width: 72px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prob-bar-wrap { flex: 1; height: 5px; background: var(--border2); border-radius: 3px; }
+.prob-bar { height: 100%; border-radius: 3px; }
+.prob-pct { font-size: 10px; font-family: var(--font-head); font-weight: 600; color: var(--muted); width: 32px; text-align: right; flex-shrink: 0; }
+.msg-loading .msg-ai-content { padding: 1rem 1.25rem; }
+.typing-dots { display: flex; gap: 5px; align-items: center; }
+.typing-dots span { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; animation: bounce 1.2s infinite; opacity: 0.6; }
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-6px); opacity: 1; } }
+.error-bubble { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: 4px 16px 16px 16px; padding: 12px 16px; font-size: 13px; color: #fca5a5; max-width: 400px; }
+
+/* INPUT BAR — NO SEND BUTTON */
+.input-bar { padding: 0.75rem 2.5rem 1rem; flex-shrink: 0; background: var(--bg); border-top: 1px solid var(--border2); }
+.input-bar .input-row, .input-bar .input-hint { max-width: 1150px; margin-left: auto; margin-right: auto; }
+.input-row { display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--border2); border-radius: 14px; padding: 8px 10px 8px 6px; transition: border-color 0.2s; position: relative; }
+.pending-image-chip { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 4px 8px 4px 4px; flex-shrink: 0; max-width: 220px; }
+.pending-image-chip img { width: 34px; height: 34px; border-radius: 7px; object-fit: cover; flex-shrink: 0; }
+.pending-image-name { font-size: 11px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
+.pending-image-remove { width: 20px; height: 20px; border-radius: 50%; border: none; background: rgba(248,113,113,0.12); color: var(--red); cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.2s; }
+.pending-image-remove:hover { background: rgba(248,113,113,0.25); }
+.input-row:focus-within { border-color: rgba(56,189,248,0.3); }
+.btn-plus { width: 36px; height: 36px; border-radius: 10px; background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.2); color: var(--accent); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 300; flex-shrink: 0; transition: all 0.2s; position: relative; }
+.btn-plus:hover { background: rgba(56,189,248,0.18); border-color: var(--accent); transform: rotate(90deg); }
+.plus-menu { position: absolute; bottom: calc(100% + 8px); left: 0; background: var(--card2); border: 1px solid var(--border); border-radius: 12px; padding: 6px; display: none; flex-direction: column; gap: 2px; min-width: 190px; z-index: 100; box-shadow: 0 8px 32px rgba(0,0,0,0.4); animation: popUp 0.15s ease; }
+@keyframes popUp { from { opacity: 0; transform: translateY(6px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.plus-menu.open { display: flex; }
+.plus-menu-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; cursor: pointer; transition: background 0.15s; border: none; background: none; color: var(--text); font-family: var(--font-body); font-size: 13px; font-weight: 500; width: 100%; text-align: left; }
+.plus-menu-item:hover { background: rgba(255,255,255,0.05); }
+.plus-menu-item .item-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.item-icon.upload { background: rgba(56,189,248,0.12); }
+.item-icon.camera { background: rgba(167,139,250,0.12); }
+.plus-menu-item .item-text { line-height: 1.3; }
+.plus-menu-item .item-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.input-text { flex: 1; background: none; border: none; outline: none; color: var(--text); font-family: var(--font-body); font-size: 14px; padding: 4px 6px; }
+.input-text::placeholder { color: var(--muted); }
+.btn-mic { width: 36px; height: 36px; border-radius: 10px; background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.2); color: var(--purple); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; transition: all 0.2s; }
+.btn-send-main { width: 38px; height: 38px; border-radius: 10px; background: var(--accent); border: none; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; }
+.btn-send-main:hover { background: var(--accent2); transform: scale(1.05); }
+.btn-send-main:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-mic:hover { background: rgba(167,139,250,0.2); border-color: var(--purple); }
+.btn-mic.recording { background: rgba(239,68,68,0.15); border-color: var(--red); color: var(--red); animation: micPulse 1s infinite; }
+@keyframes micPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); } 50% { box-shadow: 0 0 0 6px rgba(239,68,68,0); } }
+.input-hint { text-align: center; font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+/* ── INLINE CHAT (appears below result bubble) ── */
+.inline-chat-wrap {
+  margin-top: 14px;
+  border-top: 1px solid var(--border2);
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: fadeUp 0.3s ease;
+}
+.inline-chat-label {
+  font-size: 11px;
+  font-family: var(--font-head);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.inline-chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+.inline-chat-messages::-webkit-scrollbar { width: 3px; }
+.inline-chat-messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+.ichat-msg { display: flex; gap: 8px; animation: fadeUp 0.2s ease; }
+.ichat-msg.user { flex-direction: row-reverse; }
+.ichat-avatar { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; margin-top: 2px; }
+.ichat-msg.bot .ichat-avatar { background: linear-gradient(135deg, #059669, #047857); }
+.ichat-msg.user .ichat-avatar { background: rgba(16,185,129,0.15); }
+.ichat-bubble {
+  max-width: 85%;
+  padding: 8px 12px;
+  font-size: 13px;
+  line-height: 1.55;
+  border-radius: 12px;
+}
+.ichat-msg.bot .ichat-bubble {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 4px 12px 12px 12px;
+  color: var(--text);
+}
+.ichat-msg.user .ichat-bubble {
+  background: rgba(16,185,129,0.08);
+  border: 1px solid rgba(16,185,129,0.2);
+  border-radius: 12px 4px 12px 12px;
+  color: var(--text);
+}
+.ichat-quick-btns {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.ichat-quick-btn {
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--accent);
+  font-size: 11px;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+.ichat-quick-btn:hover { background: rgba(16,185,129,0.1); border-color: var(--accent); }
+.ichat-input-row {
+  display: flex; gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 6px 8px;
+  transition: border-color 0.2s;
+}
+.ichat-input-row:focus-within { border-color: rgba(16,185,129,0.4); }
+.ichat-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 2px 4px;
+  resize: none;
+  max-height: 80px;
+}
+.ichat-input::placeholder { color: var(--muted); }
+.ichat-send-btn {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #059669, #047857);
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+  align-self: flex-end;
+  transition: all 0.2s;
+}
+.ichat-send-btn:hover { opacity: 0.88; transform: scale(1.05); }
+.ichat-send-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+[data-theme="light"] .ichat-msg.bot .ichat-bubble { background: #f8fafc; border-color: #e2e8f0; }
+[data-theme="light"] .ichat-msg.user .ichat-bubble { background: rgba(5,150,105,0.06); border-color: rgba(5,150,105,0.2); }
+[data-theme="light"] .ichat-input-row { background: #f8fafc; border-color: #e2e8f0; }
+[data-theme="light"] .ichat-quick-btn { background: #f1f5f9; border-color: #e2e8f0; }
+
+/* ── CLAUDE.AI STYLE QUICK ACTION PILLS ── */
+.quick-actions {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+  margin-top: 0.5rem; max-width: 520px;
+}
+.qa-btn {
+  display: flex; align-items: center; gap: 7px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+.qa-btn:hover { background: rgba(255,255,255,0.07); border-color: var(--border); }
+[data-theme="light"] .qa-btn { background: #f8fafc; border-color: #e2e8f0; color: #111; }
+[data-theme="light"] .qa-btn:hover { background: #f0f4f8; }
+
+.optimize-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(16,185,129,0.35);
+  background: rgba(16,185,129,0.07);
+  color: var(--accent);
+  font-family: var(--font-head);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+  letter-spacing: 0.02em;
+}
+.optimize-pill:hover { background: rgba(16,185,129,0.13); border-color: var(--accent); }
+[data-theme="light"] .optimize-pill { background: rgba(5,150,105,0.07); border-color: rgba(5,150,105,0.3); }
+
+/* CAMERA MODAL */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; }
+.modal-overlay.active { display: flex; }
+.camera-modal { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; width: 90%; max-width: 480px; text-align: center; }
+.camera-modal h3 { font-family: var(--font-head); font-size: 17px; font-weight: 800; color: var(--text); margin-bottom: 1rem; }
+#cameraVideo { width: 100%; border-radius: var(--radius-sm); background: #000; margin-bottom: 1rem; max-height: 300px; }
+.camera-btns { display: flex; gap: 10px; justify-content: center; }
+.btn-capture { background: linear-gradient(135deg, #059669, #047857); color: #fff; border: none; border-radius: var(--radius-sm); padding: 10px 22px; font-family: var(--font-head); font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+.btn-capture:hover { background: #047857; transform: translateY(-1px); }
+.btn-cancel { background: transparent; color: var(--muted); border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 10px 18px; font-family: var(--font-head); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-cancel:hover { color: var(--red); border-color: var(--red); }
+
+body::before { content: ''; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(ellipse 60% 40% at 15% 25%, rgba(16,185,129,0.06) 0%, transparent 55%), radial-gradient(ellipse 50% 40% at 85% 75%, rgba(52,211,153,0.04) 0%, transparent 55%); pointer-events: none; z-index: 0; }
+@media (max-width: 640px) { .sidebar { position: absolute; left: 0; top: 0; height: 100%; z-index: 50; } .sidebar:not(.collapsed) { box-shadow: 4px 0 20px rgba(0,0,0,0.5); } }
+
+/* AUTH OVERLAY */
+.auth-overlay { position: fixed; inset: 0; background: rgba(4,8,16,0.97); z-index: 2000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+.auth-overlay.hidden { display: none; }
+.auth-box { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 2.5rem 2rem; width: 90%; max-width: 400px; position: relative; overflow: hidden; animation: authIn 0.35s cubic-bezier(0.16,1,0.3,1); }
+@keyframes authIn { from { opacity:0; transform: translateY(30px) scale(0.96); } to { opacity:1; transform: translateY(0) scale(1); } }
+.auth-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #059669, #10b981, #34d399); }
+.auth-logo { text-align: center; margin-bottom: 1.5rem; }
+.auth-logo-icon { width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; filter: drop-shadow(0 4px 14px rgba(11,23,48,0.4)); }
+.auth-logo-icon .dms-logo-svg { width: 100%; height: 100%; }
+.auth-logo h2 { font-family: var(--font-head); font-size: 22px; font-weight: 800; color: var(--text); }
+.auth-logo p { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.auth-tabs { display: flex; background: var(--surface); border-radius: 10px; padding: 4px; margin-bottom: 1.5rem; gap: 4px; }
+.auth-tab { flex: 1; padding: 8px; border-radius: 8px; border: none; background: none; color: var(--muted); font-family: var(--font-head); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+.auth-tab.active { background: var(--card2); color: var(--accent); border: 1px solid var(--border); }
+.auth-form { display: flex; flex-direction: column; gap: 12px; }
+.auth-form.hidden { display: none; }
+.auth-field { display: flex; flex-direction: column; gap: 5px; }
+.auth-field label { font-size: 12px; font-family: var(--font-head); font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.auth-field input { background: var(--surface); border: 1px solid var(--border2); border-radius: 10px; padding: 11px 14px; color: var(--text); font-family: var(--font-body); font-size: 14px; outline: none; transition: border-color 0.2s; }
+.auth-field input:focus { border-color: rgba(16,185,129,0.45); box-shadow: 0 0 0 3px rgba(16,185,129,0.08); }
+.auth-field input::placeholder { color: var(--muted); }
+.btn-auth-submit { background: linear-gradient(135deg, #059669, #047857); color: #fff; border: none; border-radius: 10px; padding: 12px; font-family: var(--font-head); font-size: 14px; font-weight: 700; cursor: pointer; letter-spacing: 0.04em; transition: all 0.2s; box-shadow: 0 4px 18px rgba(5,150,105,0.3); margin-top: 4px; }
+.btn-auth-submit:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(5,150,105,0.45); }
+.auth-error { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: 8px; padding: 10px 12px; font-size: 12px; color: #fca5a5; display: none; }
+.auth-error.visible { display: block; }
+.auth-switch { text-align: center; font-size: 13px; color: var(--muted); margin-top: 4px; }
+.auth-switch span { color: var(--accent); cursor: pointer; font-weight: 600; }
+.auth-switch span:hover { text-decoration: underline; }
+
+/* CHATBOT — Right slide-in panel (no floating FAB) */
+.chatbot-fab { display: none; } /* hidden — chatbot moved to right panel */
+.fab-badge { display: none; }
+
+.chatbot-panel-overlay {
+  position: fixed; inset: 0; z-index: 498;
+  background: transparent; pointer-events: none;
+}
+.chatbot-panel-overlay.open { pointer-events: all; }
+
+.chatbot-window {
+  position: fixed;
+  top: 0; right: 0;
+  width: 360px; max-width: 95vw;
+  height: 100vh;
+  background: var(--sidebar);
+  border-left: 1px solid var(--border2);
+  box-shadow: -12px 0 40px rgba(0,0,0,0.45);
+  display: flex; flex-direction: column;
+  z-index: 499;
+  transform: translateX(100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.32s cubic-bezier(0.16,1,0.3,1), opacity 0.25s;
+  overflow: hidden;
+}
+.chatbot-window.open {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: all;
+}
+[data-theme="light"] .chatbot-window { background: #ffffff; border-left: 1px solid #e2e8f0; box-shadow: -12px 0 40px rgba(0,0,0,0.12); }
+
+.cb-header { background: var(--card2); padding: 14px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border2); flex-shrink: 0; }
+[data-theme="light"] .cb-header { background: var(--card2); border-bottom: 1px solid #e2e8f0; }
+.cb-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #059669, #047857); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; box-shadow: 0 0 12px rgba(16,185,129,0.25); }
+.cb-header-info { flex: 1; }
+.cb-header-info h4 { font-family: var(--font-head); font-size: 14px; font-weight: 700; color: var(--text); }
+.cb-header-info p  { font-size: 11px; color: var(--green); margin-top: 1px; }
+.cb-online { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); flex-shrink: 0; }
+.btn-cb-close { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; padding: 4px; border-radius: 6px; transition: color 0.2s; }
+.btn-cb-close:hover { color: var(--red); }
+.cb-lang-toggle { display: flex; gap: 4px; padding: 8px 12px; background: var(--surface); border-bottom: 1px solid var(--border2); flex-shrink: 0; }
+.cb-lang-btn { flex: 1; padding: 5px; border-radius: 6px; border: 1px solid var(--border2); background: none; color: var(--muted); font-size: 11px; font-family: var(--font-head); font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.cb-lang-btn.active { background: var(--glow); border-color: var(--accent); color: var(--accent); }
+.cb-messages { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.cb-messages::-webkit-scrollbar { width: 4px; }
+.cb-messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+.cb-msg { display: flex; gap: 8px; animation: cbMsgIn 0.25s ease; }
+@keyframes cbMsgIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.cb-msg.user { flex-direction: row-reverse; }
+.cb-msg-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; margin-top: 2px; overflow: hidden; }
+.cb-msg.bot .cb-msg-avatar .dms-logo-svg { width: 100%; height: 100%; }
+.cb-msg.bot  .cb-msg-avatar { background: transparent; }
+.cb-msg.user .cb-msg-avatar { background: rgba(56,189,248,0.2); }
+.cb-msg-bubble { max-width: 82%; padding: 10px 12px; border-radius: 14px; font-size: 13px; line-height: 1.55; }
+.cb-msg.bot  .cb-msg-bubble { background: var(--card2); border: 1px solid var(--border2); border-radius: 4px 14px 14px 14px; color: var(--text); }
+.cb-msg.user .cb-msg-bubble { background: var(--glow); border: 1px solid var(--border); border-radius: 14px 4px 14px 14px; color: var(--text); text-align: right; }
+.cb-typing { display: flex; gap: 4px; align-items: center; padding: 4px 2px; }
+.cb-typing span { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: cbDot 1.2s infinite; opacity: 0.6; }
+.cb-typing span:nth-child(2) { animation-delay: 0.2s; }
+.cb-typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes cbDot { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-5px); opacity: 1; } }
+.cb-quick-replies { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 12px; flex-shrink: 0; }
+.cb-quick-btn { padding: 5px 10px; border-radius: 20px; border: 1px solid var(--border); background: var(--glow); color: var(--accent); font-size: 11px; font-family: var(--font-body); cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+.cb-quick-btn:hover { background: rgba(56,189,248,0.15); border-color: var(--accent); }
+.cb-input-row { display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--border2); flex-shrink: 0; background: var(--surface); }
+.cb-input { flex: 1; background: var(--card); border: 1px solid var(--border2); border-radius: 10px; padding: 8px 12px; color: var(--text); font-family: var(--font-body); font-size: 13px; outline: none; resize: none; transition: border-color 0.2s; max-height: 80px; }
+.cb-input:focus { border-color: rgba(16,185,129,0.4); box-shadow: 0 0 0 2px rgba(16,185,129,0.08); }
+.cb-input::placeholder { color: var(--muted); }
+.btn-cb-send { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #059669, #047857); border: none; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; align-self: flex-end; transition: all 0.2s; box-shadow: 0 2px 10px rgba(5,150,105,0.3); }
+.btn-cb-send:hover { transform: scale(1.05); }
+.btn-cb-send:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+@media (max-width: 640px) { .chatbot-window { width: 100vw; } }
+</style>
+</head>
+<body>
+
+<!-- ============ DEEPMEDISCAN LOGO (reusable SVG symbol) ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="dms-logo" viewBox="0 0 160 160">
+    <defs>
+      <radialGradient id="dmsBadge" cx="35%" cy="30%" r="75%">
+        <stop offset="0%" stop-color="#1E3768"/>
+        <stop offset="100%" stop-color="#0B1730"/>
+      </radialGradient>
+      <linearGradient id="dmsOrange" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#FF8A4C"/>
+        <stop offset="100%" stop-color="#E45A1F"/>
+      </linearGradient>
+    </defs>
+    <circle cx="80" cy="80" r="72" fill="url(#dmsBadge)"/>
+    <circle cx="80" cy="80" r="69.5" fill="none" stroke="#5577B8" stroke-width="1" stroke-opacity="0.45"/>
+    <path d="M 35.83 96.07 A 47 47 0 1 1 96.07 124.17" fill="none" stroke="#FFFFFF" stroke-opacity="0.92" stroke-width="5.5" stroke-linecap="round"/>
+    <circle cx="96.07" cy="124.17" r="8.5" fill="url(#dmsOrange)"/>
+    <circle cx="96.07" cy="124.17" r="8.5" fill="none" stroke="#0B1730" stroke-width="1.5" stroke-opacity="0.25"/>
+    <path d="M80 50 C 94 68, 101 80, 101 90 a 21 21 0 1 1 -42 0 C 59 80, 66 68, 80 50 Z" fill="#F4F7FF" opacity="0.95"/>
+    <path d="M80 50 C 94 68, 101 80, 101 90 a 21 21 0 1 1 -42 0 C 59 80, 66 68, 80 50 Z" fill="none" stroke="#16284F" stroke-width="1.4" opacity="0.18"/>
+    <ellipse cx="71" cy="84" rx="5.5" ry="8" fill="#FFFFFF" opacity="0.55"/>
+  </symbol>
+</svg>
+
+<!-- AUTH OVERLAY -->
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="auth-logo-icon"><svg class="dms-logo-svg"><use href="#dms-logo"/></svg></div>
+      <h2>DeepMediScan</h2>
+      <p>Multi-Model Dermoscopic Skin Analysis</p>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin" onclick="switchTab('login')">Sign In</button>
+      <button class="auth-tab" id="tabSignup" onclick="switchTab('signup')">Sign Up</button>
+    </div>
+    <div class="auth-error" id="authError"></div>
+    <div class="auth-form" id="loginForm">
+      <div class="auth-field"><label>Email</label><input type="email" id="loginEmail" placeholder="your@email.com"></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="loginPassword" placeholder="Enter your password"></div>
+      <button class="btn-auth-submit" onclick="handleLogin()">Sign In →</button>
+      <div class="auth-switch">Don't have an account? <span onclick="switchTab('signup')">Sign Up</span></div>
+    </div>
+    <div class="auth-form hidden" id="signupForm">
+      <div class="auth-field"><label>Full Name</label><input type="text" id="signupName" placeholder="Muhammad Ali"></div>
+      <div class="auth-field"><label>Email</label><input type="email" id="signupEmail" placeholder="your@email.com"></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="signupPassword" placeholder="Min 6 characters"></div>
+      <div class="auth-field"><label>Confirm Password</label><input type="password" id="signupConfirm" placeholder="Repeat password"></div>
+      <button class="btn-auth-submit" onclick="handleSignup()">Create Account →</button>
+      <div class="auth-switch">Already have an account? <span onclick="switchTab('login')">Sign In</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo-icon"><svg class="dms-logo-svg"><use href="#dms-logo"/></svg></div>
+    <div class="logo-text"><h1>DeepMediScan</h1><p>22-Class Skin Analysis</p></div>
+  </div>
+  <button class="btn-new-chat" onclick="newChat()"><span>＋</span> New Analysis</button>
+  <div class="sidebar-section-label">Recent Analyses</div>
+  <div class="chat-history-list" id="chatHistoryList"></div>
+  <div class="sidebar-footer">
+    <div class="model-badge" style="flex-direction:column;align-items:stretch;gap:6px;padding:10px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="model-dot" id="modelDot"></div>
+        <span style="font-size:11px;color:var(--muted);font-family:var(--font-head);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Active Model</span>
+      </div>
+      <select id="modelSelector" onchange="onModelChange()" style="background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:var(--font-body);font-size:12px;padding:7px 10px;outline:none;cursor:pointer;width:100%;transition:border-color 0.2s;">
+        <option value="auto">🤖 Auto (Best / Ensemble)</option>
+        <option value="efficientnet_b0">EfficientNet-B0</option>
+        <option value="efficientnet_b4">EfficientNet-B4</option>
+        <option value="resnet50">ResNet-50</option>
+        <option value="mobilenetv3_large_100">MobileNetV3-Large</option>
+        <option value="ensemble">⚡ Ensemble (All Models)</option>
+      </select>
+      <div id="modelInfoLine" style="font-size:10px;color:var(--muted);padding:0 2px;">Loading model info…</div>
+    </div>
+  </div>
+</aside>
+
+<!-- CLAUDE.AI STYLE NARROW ICON BAR -->
+<div class="icon-bar" id="iconBar">
+  <!-- Logo -->
+  <div class="icon-bar-logo" onclick="toggleSidebar()" title="Toggle sidebar">
+    <svg class="dms-logo-svg"><use href="#dms-logo"/></svg>
+  </div>
+
+  <!-- New chat -->
+  <button class="icon-btn active" onclick="newChat()" title="New Analysis">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+
+  <!-- Chat history -->
+  <button class="icon-btn" onclick="toggleSidebar()" title="Analyses">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  </button>
+
+  <!-- Upload -->
+  <button class="icon-btn" onclick="triggerFileUpload()" title="Upload Image">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+  </button>
+
+  <!-- Camera -->
+  <button class="icon-btn" onclick="openCamera()" title="Take Photo">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+  </button>
+
+  <div class="icon-bar-divider"></div>
+
+  <!-- Chatbot -->
+  <button class="icon-btn" onclick="toggleChatbot()" title="AI Assistant">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+  </button>
+
+  <!-- Settings -->
+  <button class="icon-btn" onclick="openSettings()" title="Settings">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  </button>
+
+  <!-- Bottom: theme + user -->
+  <div class="icon-bar-bottom">
+    <button class="icon-btn" onclick="toggleTheme()" title="Toggle Theme" id="iconThemeBtn">
+      <span id="iconThemeIcon" style="font-size:17px;">☀️</span>
+    </button>
+    <!-- User avatar with popup -->
+    <button class="user-avatar-btn" id="iconUserAvatar" onclick="toggleUserPopup(event)">S</button>
+  </div>
+</div>
+
+<!-- USER POPUP MENU -->
+<div class="user-popup" id="userPopup">
+  <div class="user-popup-email" id="popupEmail">f22bdats1m02033@iub.edu.pk</div>
+  <button class="popup-item" onclick="openSettings()">
+    <span class="popup-item-left"><span class="popup-item-icon">⚙️</span> Settings</span>
+    <span class="popup-item-shortcut">Ctrl ,</span>
+  </button>
+  <button class="popup-item" onclick="toggleTheme()">
+    <span class="popup-item-left"><span class="popup-item-icon" id="popupThemeIcon">☀️</span> <span id="popupThemeLabel">Switch Theme</span></span>
+    <span>›</span>
+  </button>
+  <button class="popup-item" onclick="toggleChatbot()">
+    <span class="popup-item-left"><span class="popup-item-icon">💬</span> AI Assistant</span>
+  </button>
+  <div class="popup-divider"></div>
+  <button class="popup-item blue">
+    <span class="popup-item-left"><span class="popup-item-icon">⬆️</span> Upgrade Plan</span>
+  </button>
+  <button class="popup-item" onclick="triggerFileUpload()">
+    <span class="popup-item-left"><span class="popup-item-icon">🖼️</span> Upload Image</span>
+  </button>
+  <div class="popup-divider"></div>
+  <button class="popup-item red" onclick="handleLogout()">
+    <span class="popup-item-left"><span class="popup-item-icon">⎋</span> Log out</span>
+  </button>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <!-- Minimal topbar -->
+  <div class="topbar">
+    <button class="btn-toggle-sidebar" onclick="toggleSidebar()" title="Toggle history">☰</button>
+    <span class="topbar-title">🧬 DeepMediScan</span>
+    <span class="badge-api" id="apiBadge">API CONNECTED</span>
+    <!-- hidden but keeping IDs for JS compatibility -->
+    <span id="themeIcon" style="display:none">☀️</span>
+    <span id="themeLabel" style="display:none">Light</span>
+    <div id="userPill" style="display:none">
+      <div id="userAvatar">?</div>
+      <span id="userName">Guest</span>
+    </div>
+    <!-- model selector hidden here but still in DOM for JS -->
+    <select id="modelSelector" onchange="onModelChange()" style="display:none;">
+      <option value="auto">Auto</option>
+      <option value="efficientnet_b0">EfficientNet-B0</option>
+      <option value="efficientnet_b4">EfficientNet-B4</option>
+      <option value="resnet50">ResNet-50</option>
+      <option value="mobilenetv3_large_100">MobileNetV3-Large</option>
+      <option value="ensemble">Ensemble</option>
+    </select>
+    <div id="modelDot" style="display:none"></div>
+    <div id="modelInfoLine" style="display:none"></div>
+  </div>
+
+  <div class="chat-area" id="chatArea">
+    <div class="welcome-state" id="welcomeState">
+      <!-- Claude.ai style asterisk logo -->
+      <div class="welcome-asterisk"><svg class="dms-logo-svg"><use href="#dms-logo"/></svg></div>
+      <h2 id="welcomeHeading">Welcome, Shahid</h2>
+      <!-- Optimize Prompt pill -->
+      <button class="optimize-pill" onclick="triggerFileUpload()">✨ Analyze Skin Image</button>
+      <p style="color:var(--muted);font-size:14px;max-width:380px;font-weight:300;margin-top:4px;">Upload a dermoscopic image for instant <strong style="color:var(--accent)">22-class AI analysis</strong>. <span style="color:var(--amber);font-size:11px;">⚠️ Research prototype only.</span></p>
+
+      <!-- Stats row -->
+      <div class="stats-row">
+        <div class="stat"><div class="stat-val" id="statModels">4</div><div class="stat-label">AI Models</div></div>
+        <div class="stat"><div class="stat-val" id="statAuc">—</div><div class="stat-label">Best AUC</div></div>
+        <div class="stat"><div class="stat-val">22</div><div class="stat-label">Disease Classes</div></div>
+        <div class="stat"><div class="stat-val">35K+</div><div class="stat-label">Training Images</div></div>
+      </div>
+
+      <!-- Quick action pills (Claude.ai style) -->
+      <div class="quick-actions">
+        <button class="qa-btn" onclick="triggerFileUpload()">🖼️ Upload Image</button>
+        <button class="qa-btn" onclick="openCamera()">📷 Take Photo</button>
+        <button class="qa-btn" onclick="toggleMic()">🎤 Speak</button>
+        <button class="qa-btn" onclick="focusMainInput()">💬 Ask AI</button>
+        <button class="qa-btn" onclick="openSettings()">⚙️ Settings</button>
+      </div>
+
+      <div id="modelStatusCards" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:0.75rem;max-width:560px;"></div>
+    </div>
+  </div>
+
+  <!-- INPUT BAR -->
+  <div class="input-bar">
+    <div class="input-row" id="inputRow">
+      <div style="position:relative;">
+        <button class="btn-plus" id="btnPlus" onclick="togglePlusMenu(event)" title="Upload or Camera">+</button>
+        <div class="plus-menu" id="plusMenu">
+          <button class="plus-menu-item" onclick="triggerFileUpload()">
+            <div class="item-icon upload">🖼️</div>
+            <div class="item-text">Upload Image<div class="item-sub">JPG, PNG, BMP · Max 10MB</div></div>
+          </button>
+          <button class="plus-menu-item" onclick="openCamera()">
+            <div class="item-icon camera">📷</div>
+            <div class="item-text">Take a Photo<div class="item-sub">Use device camera</div></div>
+          </button>
+        </div>
+      </div>
+      <input type="text" class="input-text" id="inputText" placeholder="Ask about skin diseases, or tap + to upload an image…"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();handleMainSend();}">
+      <!-- Model selector badge in input bar -->
+      <select id="modelSelectorBar" onchange="syncModelFromBar()" style="background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--muted);font-family:var(--font-body);font-size:11px;padding:5px 8px;outline:none;cursor:pointer;transition:border-color 0.2s;flex-shrink:0;">
+        <option value="auto">🤖 Auto</option>
+        <option value="efficientnet_b0">EffNet-B0</option>
+        <option value="efficientnet_b4">EffNet-B4</option>
+        <option value="resnet50">ResNet-50</option>
+        <option value="mobilenetv3_large_100">MobileNetV3</option>
+        <option value="ensemble">⚡ Ensemble</option>
+      </select>
+      <button class="btn-mic" id="btnMic" onclick="toggleMic()" title="Speak">🎤</button>
+      <button class="btn-send-main" id="btnSendMain" onclick="handleMainSend()" title="Send">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+    <div class="input-hint">Type a question and press Enter · tap + to upload an image · 🎤 to speak · ⚠️ Research prototype — not for clinical use</div>
+  </div>
+</div>
+
+<!-- CAMERA MODAL -->
+<div class="modal-overlay" id="cameraModal">
+  <div class="camera-modal">
+    <h3>📷 Camera</h3>
+    <video id="cameraVideo" autoplay playsinline></video>
+    <div class="camera-btns">
+      <button class="btn-capture" onclick="capturePhoto()">📸 Capture</button>
+      <button class="btn-cancel" onclick="closeCamera()">Cancel</button>
+    </div>
+  </div>
+</div>
+<canvas id="captureCanvas" style="display:none;"></canvas>
+<input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleFile(event)">
+
+<script>
+let API_URL = localStorage.getItem('deepmediscanApiUrl') || 'http://127.0.0.1:8000';
+
+/* ══════════════════════════════
+   THEME SYSTEM
+══════════════════════════════ */
+(function initTheme() {
+  const saved = localStorage.getItem('deepmediscanTheme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+  updateThemeBtn(saved);
+})();
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') || 'dark';
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('deepmediscanTheme', next);
+  updateThemeBtn(next);
+  syncThemeSegment(next);
+}
+
+function updateThemeBtn(theme) {
+  const icon  = document.getElementById('themeIcon');
+  const label = document.getElementById('themeLabel');
+  const iconTheme = document.getElementById('iconThemeIcon');
+  const popupIcon = document.getElementById('popupThemeIcon');
+  const popupLabel = document.getElementById('popupThemeLabel');
+  if (icon) icon.textContent = theme === 'light' ? '🌙' : '☀️';
+  if (label) label.textContent = theme === 'light' ? 'Dark' : 'Light';
+  if (iconTheme) iconTheme.textContent = theme === 'light' ? '🌙' : '☀️';
+  if (popupIcon) popupIcon.textContent = theme === 'light' ? '🌙' : '☀️';
+  if (popupLabel) popupLabel.textContent = theme === 'light' ? 'Dark Mode' : 'Light Mode';
+}
+
+/* ── USER POPUP ── */
+function toggleUserPopup(e) {
+  e.stopPropagation();
+  document.getElementById('userPopup').classList.toggle('open');
+}
+document.addEventListener('click', () => {
+  const p = document.getElementById('userPopup');
+  if (p) p.classList.remove('open');
+});
+
+/* ── SYNC MODEL BAR SELECTOR ── */
+function syncModelFromBar() {
+  const bar = document.getElementById('modelSelectorBar');
+  const main = document.getElementById('modelSelector');
+  if (bar && main) { main.value = bar.value; onModelChange(); }
+}
+function syncBarFromMain() {
+  const bar = document.getElementById('modelSelectorBar');
+  const main = document.getElementById('modelSelector');
+  if (bar && main) bar.value = main.value;
+}
+
+/* ══════════════════════════════
+   SETTINGS PANEL
+══════════════════════════════ */
+function openSettings() {
+  document.getElementById('settingsOverlay').classList.add('open');
+  document.getElementById('settingsPanel').classList.add('open');
+  // Sync current values into the panel
+  const theme = document.documentElement.getAttribute('data-theme') || 'dark';
+  syncThemeSegment(theme);
+  const dm = localStorage.getItem('deepmediscanDefaultModel') || 'auto';
+  const dmSel = document.getElementById('setDefaultModel'); if (dmSel) dmSel.value = dm;
+  const apiInput = document.getElementById('setApiUrl'); if (apiInput) apiInput.value = API_URL;
+  updateHistoryCount();
+  checkApiStatus();
+}
+function closeSettings() {
+  document.getElementById('settingsOverlay').classList.remove('open');
+  document.getElementById('settingsPanel').classList.remove('open');
+}
+function syncThemeSegment(theme) {
+  document.querySelectorAll('#segTheme .seg-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.themeVal === theme);
+  });
+}
+function setThemeFromSettings(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('deepmediscanTheme', theme);
+  updateThemeBtn(theme);
+  syncThemeSegment(theme);
+}
+function saveDefaultModel(val) {
+  localStorage.setItem('deepmediscanDefaultModel', val);
+  const main = document.getElementById('modelSelector');
+  if (main) { main.value = val; if (typeof onModelChange === 'function') onModelChange(); }
+}
+function saveApiUrl() {
+  const input = document.getElementById('setApiUrl');
+  let v = (input.value || '').trim().replace(/\/+$/, '');
+  if (!v) v = 'http://127.0.0.1:8000';
+  API_URL = v;
+  localStorage.setItem('deepmediscanApiUrl', v);
+  checkApiStatus();
+}
+async function checkApiStatus() {
+  const dot = document.getElementById('setApiDot');
+  const txt = document.getElementById('setApiStatusText');
+  if (!dot || !txt) return;
+  dot.className = 'settings-dot'; txt.textContent = 'Checking…';
+  try {
+    const res = await fetch(`${API_URL}/`, { method: 'GET' });
+    if (res.ok) { dot.className = 'settings-dot on'; txt.textContent = 'Connected'; }
+    else { dot.className = 'settings-dot off'; txt.textContent = 'Reachable, but returned an error'; }
+  } catch {
+    dot.className = 'settings-dot off';
+    txt.textContent = 'Not reachable — is main.py running?';
+  }
+}
+function updateHistoryCount() {
+  const el = document.getElementById('setHistoryCount');
+  if (!el) return;
+  let n = 0;
+  try { n = (JSON.parse(sessionStorage.getItem('deepMediScanHistory') || '[]')).length; } catch {}
+  el.textContent = n === 0 ? 'No analyses stored yet' : `${n} analysis${n === 1 ? '' : 'es'} stored on this device`;
+}
+function clearAllHistory() {
+  if (!confirm('Clear all stored analyses on this device? This cannot be undone.')) return;
+  sessionStorage.removeItem('deepMediScanHistory');
+  if (typeof renderSidebarHistory === 'function') renderSidebarHistory();
+  updateHistoryCount();
+}
+// Close settings on Escape
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSettings(); });
+</script>
+
+<script>
+
+let currentImageBlob = null;
+let currentImageURL  = null;
+let cameraStream     = null;
+let sidebarOpen      = false;  // start collapsed — icon bar is primary nav
+let recognition      = null;
+let isRecording      = false;
+let loadedModelsInfo = {};
+
+// Collapse sidebar on load
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('sidebar').classList.add('collapsed');
+});
+
+// ── MODEL SELECTOR HELPERS ──
+function getSelectedModel() {
+  return document.getElementById('modelSelector')?.value || 'auto';
+}
+
+function getSelectedEndpoint() {
+  const m = getSelectedModel();
+  if (m === 'auto')     return '/predict';
+  if (m === 'ensemble') return '/predict/ensemble';
+  return `/predict/${m}`;
+}
+
+function getActiveModelLabel() {
+  const m = getSelectedModel();
+  const labels = {
+    'auto'                   : 'Auto-select',
+    'efficientnet_b0'        : 'EfficientNet-B0',
+    'efficientnet_b4'        : 'EfficientNet-B4',
+    'resnet50'               : 'ResNet-50',
+    'mobilenetv3_large_100'  : 'MobileNetV3-Large',
+    'ensemble'               : 'Ensemble',
+  };
+  return labels[m] || m;
+}
+
+function onModelChange() {
+  const m = getSelectedModel();
+  const dot = document.getElementById('modelDot');
+  const info = document.getElementById('modelInfoLine');
+  if (m === 'ensemble') {
+    dot.style.background = '#a78bfa';
+    dot.style.boxShadow  = '0 0 6px #a78bfa';
+    const n = Object.keys(loadedModelsInfo).length;
+    info.textContent = `Weighted ensemble of ${n} model(s)`;
+  } else if (m === 'auto') {
+    dot.style.background = 'var(--green)';
+    dot.style.boxShadow  = '0 0 6px var(--green)';
+    info.textContent = 'Auto: best AUC or ensemble if 2+ loaded';
+  } else if (loadedModelsInfo[m]) {
+    const mi = loadedModelsInfo[m];
+    dot.style.background = 'var(--green)';
+    dot.style.boxShadow  = '0 0 6px var(--green)';
+    info.textContent = `AUC: ${mi.auc} · Acc: ${mi.accuracy}% · Ep: ${mi.epoch} · ${mi.file_size}MB`;
+  } else {
+    dot.style.background = 'var(--amber)';
+    dot.style.boxShadow  = '0 0 6px var(--amber)';
+    info.textContent = 'Model not loaded on server';
+  }
+}
+
+// ── FETCH MODELS FROM API ──
+async function fetchModelsInfo() {
+  try {
+    const res = await fetch(`${API_URL}/models`);
+    if (!res.ok) return;
+    const data = await res.json();
+    loadedModelsInfo = data.models || {};
+    const count = data.models_loaded || 0;
+    const ensembleReady = data.ensemble_ready || false;
+
+    // Update stat
+    document.getElementById('statModels').textContent = count;
+
+    // Best AUC
+    let bestAuc = 0;
+    Object.values(loadedModelsInfo).forEach(m => { if (m.auc > bestAuc) bestAuc = m.auc; });
+    if (bestAuc > 0) document.getElementById('statAuc').textContent = (bestAuc * 100).toFixed(2) + '%';
+
+    // Update selector — disable options not loaded
+    const sel = document.getElementById('modelSelector');
+    const modelKeys = ['efficientnet_b0','efficientnet_b4','resnet50','mobilenetv3_large_100'];
+    modelKeys.forEach(key => {
+      const opt = sel.querySelector(`option[value="${key}"]`);
+      if (opt) {
+        const loaded = !!loadedModelsInfo[key];
+        opt.disabled = !loaded;
+        const mi = loadedModelsInfo[key];
+        if (loaded && mi) {
+          opt.textContent = `${opt.textContent.split(' (')[0]} (AUC: ${(mi.auc * 100).toFixed(1)}%)`;
+        } else {
+          opt.textContent = opt.textContent.split(' (')[0] + ' — not loaded';
+          opt.style.color = '#64748b';
+        }
+      }
+    });
+    const ensOpt = sel.querySelector('option[value="ensemble"]');
+    if (ensOpt) {
+      ensOpt.disabled = !ensembleReady;
+      if (!ensembleReady) { ensOpt.textContent = '⚡ Ensemble — need 2+ models'; ensOpt.style.color = '#64748b'; }
+    }
+
+    // Model status mini-cards on welcome screen
+    const cardsDiv = document.getElementById('modelStatusCards');
+    if (cardsDiv) {
+      const allModels = {
+        'efficientnet_b0'       : 'EffNet-B0',
+        'efficientnet_b4'       : 'EffNet-B4',
+        'resnet50'              : 'ResNet-50',
+        'mobilenetv3_large_100' : 'MobileNetV3',
+      };
+      cardsDiv.innerHTML = Object.entries(allModels).map(([key, label]) => {
+        const mi = loadedModelsInfo[key];
+        const ok = !!mi;
+        return `<div style="background:${ok ? 'rgba(16,185,129,0.07)' : 'rgba(100,116,139,0.07)'};border:1px solid ${ok ? 'rgba(16,185,129,0.25)' : 'var(--border2)'};border-radius:8px;padding:6px 12px;text-align:center;min-width:100px;">
+          <div style="font-size:10px;font-family:var(--font-head);font-weight:700;color:${ok ? 'var(--green)' : 'var(--muted)'};">${label}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;">${ok ? `AUC: ${(mi.auc*100).toFixed(1)}% · ${mi.accuracy}% Acc` : 'Not loaded'}</div>
+        </div>`;
+      }).join('');
+      if (ensembleReady) {
+        cardsDiv.innerHTML += `<div style="background:rgba(167,139,250,0.07);border:1px solid rgba(167,139,250,0.25);border-radius:8px;padding:6px 12px;text-align:center;min-width:100px;">
+          <div style="font-size:10px;font-family:var(--font-head);font-weight:700;color:var(--purple);">⚡ Ensemble</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;">${count} models combined</div>
+        </div>`;
+      }
+    }
+
+    // Set default selection: saved user preference first, else server default
+    const savedDefault = localStorage.getItem('deepmediscanDefaultModel');
+    if (savedDefault && (savedDefault === 'auto' || savedDefault === 'ensemble' || loadedModelsInfo[savedDefault])) {
+      sel.value = (savedDefault === 'ensemble' && !ensembleReady) ? 'auto' : savedDefault;
+    } else if (count >= 2) {
+      sel.value = 'auto'; // auto = ensemble on server side
+    } else if (count === 1) {
+      const firstLoaded = Object.keys(loadedModelsInfo)[0];
+      if (firstLoaded) sel.value = firstLoaded;
+    }
+    onModelChange();
+
+  } catch(e) {
+    document.getElementById('modelInfoLine').textContent = '⚠️ Server offline — run main.py first';
+    document.getElementById('modelDot').style.background = 'var(--red)';
+    const badge = document.getElementById('apiBadge');
+    if (badge) { badge.textContent = 'API OFFLINE'; badge.style.color = 'var(--red)'; badge.style.borderColor = 'rgba(239,68,68,0.3)'; }
+  }
+}
+
+// ── MIC ──
+let manualMicStop = false;   // true only when the USER taps the mic to stop
+
+function toggleMic() {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    appendErrorBubble('Speech recognition is not supported in this browser. Please use Chrome.');
+    return;
+  }
+  if (isRecording) { manualMicStop = true; stopMic(); return; }
+  manualMicStop = false;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SR();
+  recognition.lang = (typeof cbLang !== 'undefined' && cbLang === 'ur') ? 'ur-PK' : 'en-US';
+  recognition.interimResults = true;
+  recognition.continuous = true;   // keep listening; don't stop on a short pause
+  recognition.onstart = () => {
+    isRecording = true;
+    const btn = document.getElementById('btnMic');
+    if (btn) { btn.classList.add('recording'); btn.textContent = '⏹'; }
+    document.getElementById('inputText').value = 'Listening…';
+  };
+  recognition.onresult = (e) => {
+    let finalText = '';
+    for (let i = 0; i < e.results.length; i++) {
+      finalText += e.results[i][0].transcript;
+    }
+    document.getElementById('inputText').value = finalText;
+  };
+  recognition.onerror = (e) => {
+    // 'no-speech' / 'aborted' happen on natural pauses — keep the mic alive
+    // instead of stopping, so the user isn't cut off mid-sentence.
+    if (e.error === 'no-speech' || e.error === 'aborted') return;
+    manualMicStop = true; stopMic();
+    appendErrorBubble('Microphone error: ' + e.error);
+  };
+  recognition.onend = () => {
+    // The browser may auto-end on a pause. If the user did NOT tap stop,
+    // restart listening so the mic stays on until they choose to stop.
+    if (!manualMicStop && isRecording) {
+      try { recognition.start(); return; } catch (_) {}
+    }
+    finishMic();
+  };
+  recognition.start();
+}
+
+// Called when the USER taps the mic to stop. Ends recognition; onend → finishMic.
+function stopMic() {
+  if (recognition) {
+    try { recognition.stop(); } catch (_) {}
+  } else {
+    finishMic();
+  }
+}
+
+// Actually tears down the mic UI and sends whatever was captured.
+function finishMic() {
+  isRecording = false;
+  const btn = document.getElementById('btnMic');
+  if (btn) { btn.classList.remove('recording'); btn.textContent = '🎤'; }
+  const input = document.getElementById('inputText');
+  const text = input ? input.value : '';
+  recognition = null;
+  if (text && text !== 'Listening…') {
+    input.value = '';
+    askMainChat(text);   // send the spoken question to the AI
+  } else if (input) {
+    input.value = '';
+  }
+}
+
+function appendSpokenBubble(text) {
+  const chatArea = document.getElementById('chatArea');
+  const userDiv = document.createElement('div');
+  userDiv.className = 'msg msg-user';
+  userDiv.innerHTML = `<div class="msg-user-bubble" style="border-radius:16px 16px 4px 16px;"><div style="font-size:18px;">🎤</div><div class="msg-user-info"><div class="msg-user-filename" style="max-width:220px;">"${text}"</div><div class="msg-user-size">Voice message</div></div></div>`;
+  chatArea.appendChild(userDiv);
+  const aiDiv = document.createElement('div');
+  aiDiv.className = 'msg msg-ai';
+  aiDiv.innerHTML = `<div class="msg-ai-row"><div class="msg-ai-avatar"><svg class="dms-logo-svg"><use href="#dms-logo"/></svg></div><div class="msg-ai-content"><div style="font-size:13px;color:var(--muted);margin-bottom:6px;">Voice input received:</div><div style="font-size:14px;color:var(--text);">You said: <strong style="color:var(--accent)">"${text}"</strong></div><div style="font-size:13px;color:var(--muted);margin-top:10px;">Please upload or capture a skin image using the <strong style="color:var(--accent)">+</strong> button for AI analysis.</div></div></div>`;
+  chatArea.appendChild(aiDiv);
+  scrollBottom();
+}
+
+// ── SIDEBAR ──
+function toggleSidebar() {
+  sidebarOpen = !sidebarOpen;
+  document.getElementById('sidebar').classList.toggle('collapsed', !sidebarOpen);
+}
+
+// ── PLUS MENU ──
+function togglePlusMenu(e) {
+  e.stopPropagation();
+  document.getElementById('plusMenu').classList.toggle('open');
+}
+document.addEventListener('click', () => document.getElementById('plusMenu').classList.remove('open'));
+
+function triggerFileUpload() {
+  document.getElementById('plusMenu').classList.remove('open');
+  document.getElementById('fileInput').click();
+}
+
+// ── FILE HANDLING ──
+function handleFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  loadImageFile(file);
+  // reset so same file can be re-selected
+  event.target.value = '';
+}
+
+function loadImageFile(file) {
+  currentImageBlob = file;
+  const url = URL.createObjectURL(file);
+  currentImageURL = url;
+  // Do NOT analyze yet — wait for the user to press send (➤).
+  // Show a small preview chip inside the input bar so they know it's attached.
+  showPendingImage(file, url);
+}
+
+// Show an attached-image chip in the input bar (with a remove button)
+function showPendingImage(file, url) {
+  const bar = document.getElementById('inputRow');
+  let chip = document.getElementById('pendingImageChip');
+  if (chip) chip.remove();
+  chip = document.createElement('div');
+  chip.id = 'pendingImageChip';
+  chip.className = 'pending-image-chip';
+  chip.innerHTML = `<img src="${url}" alt="attached"><span class="pending-image-name">${file.name}</span><button class="pending-image-remove" onclick="clearPendingImage()" title="Remove image">✕</button>`;
+  // place the chip just before the input text
+  const input = document.getElementById('inputText');
+  bar.insertBefore(chip, input);
+  const ph = document.getElementById('inputText');
+  if (ph) ph.placeholder = 'Press send ➤ to analyze this image, or add a note…';
+}
+
+function clearPendingImage() {
+  currentImageBlob = null;
+  currentImageURL = null;
+  const chip = document.getElementById('pendingImageChip');
+  if (chip) chip.remove();
+  const ph = document.getElementById('inputText');
+  if (ph) ph.placeholder = 'Ask about skin diseases, or tap + to upload an image…';
+}
+
+function appendUserBubble(file, url) {
+  const chatArea = document.getElementById('chatArea');
+  const div = document.createElement('div');
+  div.className = 'msg msg-user';
+  div.innerHTML = `<div class="msg-user-bubble"><img class="msg-user-img" src="${url}" alt="upload"><div class="msg-user-info"><div class="msg-user-filename">${file.name}</div><div class="msg-user-size">${(file.size/1024).toFixed(1)} KB · ${file.type}</div></div></div>`;
+  chatArea.appendChild(div);
+  scrollBottom();
+}
+
+// ── ANALYZE ──
+async function analyzeImage(note) {
+  if (!currentImageBlob) return;
+  const blob = currentImageBlob;
+  currentImageBlob = null;
+  document.getElementById('inputText').value = '';
+
+  const loadingId = 'loading-' + Date.now();
+  appendLoadingBubble(loadingId);
+
+  try {
+    const formData = new FormData();
+    formData.append('file', blob);
+    const endpoint = getSelectedEndpoint();
+    const response = await fetch(`${API_URL}${endpoint}`, { method: 'POST', body: formData });
+    if (!response.ok) { const err = await response.json(); throw new Error(err.detail || 'Server error'); }
+    const data = await response.json();
+    removeBubble(loadingId);
+    appendResultBubble(data, currentImageURL);
+    saveToHistory(data, currentImageURL);
+    currentImageURL = null;
+
+    // Record this diagnosis into the shared chat history so that follow-up
+    // questions like "tell me about it" are answered about THIS condition,
+    // not about the app itself.
+    rememberDiagnosis(data);
+
+    // If the user typed a note/question alongside the image, ask it now.
+    if (note && note.trim()) {
+      setTimeout(() => askMainChat(note.trim()), 300);
+    }
+  } catch (err) {
+    removeBubble(loadingId);
+    appendErrorBubble(err.message || 'Could not connect to DeepMediScan API. Make sure main.py is running on port 8000.');
+  }
+}
+
+function appendLoadingBubble(id) {
+  const chatArea = document.getElementById('chatArea');
+  const div = document.createElement('div');
+  div.className = 'msg msg-ai msg-loading';
+  div.id = id;
+  div.innerHTML = `<div class="msg-ai-row"><div class="msg-ai-avatar"><svg class="dms-logo-svg"><use href="#dms-logo"/></svg></div><div class="msg-ai-content"><div class="typing-dots"><span></span><span></span><span></span></div><div style="font-size:12px;color:var(--muted);margin-top:8px;">${getActiveModelLabel()} analyzing…</div></div></div>`;
+  chatArea.appendChild(div);
+  scrollBottom();
+}
+
+function appendErrorBubble(msg) {
+  const chatArea = document.getElementById('chatArea');
+  const div = document.createElement('div');
+  div.className = 'msg msg-ai';
+  div.innerHTML = `<div class="msg-ai-row"><div class="msg-ai-avatar"><svg class="dms-logo-svg"><use href="#dms-logo"/></svg></div><div class="error-bubble"><strong style="color:var(--red)">Error: </strong>${msg}</div></div>`;
+  chatArea.appendChild(div);
+  scrollBottom();
+}
+
+function appendResultBubble(data, imgUrl) {
+  const chatArea = document.getElementById('chatArea');
+  const div = document.createElement('div');
+  div.className = 'msg msg-ai';
+  const top3Html = data.top3.map(item => `
+    <div class="top3-item">
+      <div class="rank-badge rank-${item.rank}">${item.rank}</div>
+      <div class="top3-info">
+        <div class="top3-name">${item.name}</div>
+        <div class="top3-bar-wrap"><div class="top3-bar" style="width:0%;background:${item.rank===1?'#10b981':item.rank===2?'#34d399':'#4b5563'}" data-width="${item.confidence}"></div></div>
+      </div>
+      <div class="top3-pct">${item.confidence.toFixed(1)}%</div>
+    </div>`).join('');
+  const allProbs = Object.entries(data.all_probs).sort((a,b) => b[1]-a[1]);
+  const maxProb = allProbs[0][1];
+  const allHtml = allProbs.map(([name, pct]) => {
+    const short = name.split(' ')[0];
+    const barColor = pct===maxProb?'#10b981':pct>10?'#34d399':'#374151';
+    return `<div class="prob-item"><div class="prob-label" title="${name}">${short}</div><div class="prob-bar-wrap"><div class="prob-bar" style="width:0%;background:${barColor}" data-width="${pct}"></div></div><div class="prob-pct">${pct.toFixed(1)}%</div></div>`;
+  }).join('');
+  div.innerHTML = `
+    <div class="msg-ai-row">
+      <div class="msg-ai-avatar"><svg class="dms-logo-svg"><use href="#dms-logo"/></svg></div>
+      <div class="msg-ai-content">
+        <div class="result-top">
+          <div class="result-img-wrap">
+            <img src="${imgUrl}" style="width:100px;height:100px;object-fit:cover;border-radius:10px;border:2px solid var(--border);" alt="result">
+            <span class="severity-badge" style="background:${data.severity_color}22;color:${data.severity_color};border:1px solid ${data.severity_color}55">${data.severity}</span>
+          </div>
+          <div class="result-info">
+            <div class="disease-name">${data.predicted_class}${data.is_low_confidence ? ` <span style="font-size:11px;font-weight:600;color:var(--amber);background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.35);border-radius:20px;padding:2px 9px;margin-left:6px;vertical-align:middle;white-space:nowrap;">⚠️ Low Confidence</span>` : ''}</div>
+            <div class="disease-urdu">${data.urdu_name}</div>
+            <div class="confidence-row">
+              <div class="confidence-bar-wrap"><div class="confidence-bar" style="width:0%" data-width="${data.confidence}"></div></div>
+              <span class="confidence-pct">${data.confidence.toFixed(1)}%</span>
+            </div>
+            <div class="result-desc">${data.description}</div>
+            <div class="advice-box"><strong>💡 Medical Advice: </strong>${data.advice}</div>
+            ${data.disclaimer ? `<div style="margin-top:8px;font-size:11px;color:var(--amber);background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:6px;padding:7px 10px;">${data.disclaimer}</div>` : ''}
+          </div>
+        </div>
+        <div class="result-grid">
+          <div class="result-card"><h4>Top 3 Predictions</h4>${top3Html}</div>
+          <div class="result-card"><h4>All Class Probabilities</h4>${allHtml}</div>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <span style="font-size:10px;background:rgba(56,189,248,0.08);border:1px solid var(--border);border-radius:20px;padding:3px 10px;color:var(--accent);font-family:var(--font-head);font-weight:600;">🤖 ${data.model_used || 'auto'}</span>
+          ${data.models_used && data.models_used.length > 1 ? `<span style="font-size:10px;color:var(--muted);">Ensemble of ${data.models_used.length} models</span>` : ''}
+        </div>
+      </div>
+    </div>`;
+  chatArea.appendChild(div);
+  scrollBottom();
+  requestAnimationFrame(() => {
+    div.querySelectorAll('[data-width]').forEach(el => {
+      el.style.transition = 'width 1s cubic-bezier(0.16,1,0.3,1)';
+      el.style.width = el.dataset.width + '%';
+    });
+  });
+}
+
+function removeBubble(id) { const el = document.getElementById(id); if (el) el.remove(); }
+function scrollBottom() { const ca = document.getElementById('chatArea'); ca.scrollTop = ca.scrollHeight; }
+
+// ── CAMERA ──
+async function openCamera() {
+  document.getElementById('plusMenu').classList.remove('open');
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    document.getElementById('cameraVideo').srcObject = cameraStream;
+    document.getElementById('cameraModal').classList.add('active');
+  } catch(err) {
+    appendErrorBubble('Camera access denied. Please use file upload instead.');
+  }
+}
+function closeCamera() {
+  if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+  document.getElementById('cameraModal').classList.remove('active');
+}
+function capturePhoto() {
+  const video = document.getElementById('cameraVideo');
+  const canvas = document.getElementById('captureCanvas');
+  canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  canvas.toBlob(blob => {
+    const file = new File([blob], 'camera_capture.jpg', { type: 'image/jpeg' });
+    closeCamera(); loadImageFile(file);
+  }, 'image/jpeg', 0.92);
+}
+
+// ── HISTORY ──
+function saveToHistory(data, imgUrl) {
+  const history = getHistory();
+  history.unshift({ id: Date.now(), type: 'image', name: data.predicted_class, confidence: data.confidence, severity: data.severity, color: data.severity_color, imgUrl, time: new Date().toLocaleTimeString(), data });
+  if (history.length > 30) history.pop();
+  sessionStorage.setItem('deepMediScanHistory', JSON.stringify(history));
+  renderSidebarHistory();
+}
+
+// Save a chat Q&A so the user can revisit it later from the sidebar.
+function saveChatToHistory(question, answer) {
+  const history = getHistory();
+  history.unshift({ id: Date.now(), type: 'chat', question, answer, time: new Date().toLocaleTimeString() });
+  if (history.length > 30) history.pop();
+  sessionStorage.setItem('deepMediScanHistory', JSON.stringify(history));
+  renderSidebarHistory();
+}
+function getHistory() { try { return JSON.parse(sessionStorage.getItem('deepMediScanHistory') || '[]'); } catch { return []; } }
+function renderSidebarHistory() {
+  const history = getHistory();
+  const list = document.getElementById('chatHistoryList');
+  if (!history.length) { list.innerHTML = `<div style="padding:10px;font-size:12px;color:var(--muted);text-align:center;">No history yet</div>`; return; }
+  list.innerHTML = history.map(e => {
+    if (e.type === 'chat') {
+      const q = (e.question || '').length > 40 ? e.question.slice(0,40) + '…' : (e.question || 'Question');
+      return `<div class="history-chat-item" onclick="reloadHistoryEntry(${e.id})">
+        <div class="history-thumb history-thumb-chat">💬</div>
+        <div class="history-chat-info"><div class="history-chat-name">${escHtml(q)}</div><div class="history-chat-sub">${e.time}</div></div>
+      </div>`;
+    }
+    return `<div class="history-chat-item" onclick="reloadHistoryEntry(${e.id})">
+      <img class="history-thumb" src="${e.imgUrl}" alt="" onerror="this.style.display='none'">
+      <div class="history-chat-info"><div class="history-chat-name">${e.name}</div><div class="history-chat-sub">${e.time}</div></div>
+      <div class="history-chat-conf" style="color:${e.color}">${e.confidence.toFixed(0)}%</div>
+    </div>`;
+  }).join('');
+}
+function reloadHistoryEntry(id) {
+  const entry = getHistory().find(h => h.id === id);
+  if (!entry) return;
+  const ws = document.getElementById('welcomeState');
+  if (ws) ws.style.display = 'none';
+  if (entry.type === 'chat') {
+    appendMainUserText(entry.question);
+    appendMainAiText(entry.answer);
+  } else {
+    appendResultBubble(entry.data, entry.imgUrl);
+  }
+}
+function newChat() {
+  [...document.getElementById('chatArea').children].forEach(c => { if (c.id !== 'welcomeState') c.remove(); });
+  const ws = document.getElementById('welcomeState');
+  if (ws) ws.style.display = 'flex';
+  currentImageBlob = null; currentImageURL = null;
+  document.getElementById('inputText').value = '';
+}
+
+// ── AUTH ──
+function getUsers() { try { return JSON.parse(localStorage.getItem('deepMediScanUsers') || '{}'); } catch { return {}; } }
+function saveUsers(u) { localStorage.setItem('deepMediScanUsers', JSON.stringify(u)); }
+function getCurrentUser() { try { return JSON.parse(sessionStorage.getItem('deepMediScanCurrentUser') || 'null'); } catch { return null; } }
+function switchTab(tab) {
+  const isLogin = tab === 'login';
+  document.getElementById('tabLogin').classList.toggle('active', isLogin);
+  document.getElementById('tabSignup').classList.toggle('active', !isLogin);
+  document.getElementById('loginForm').classList.toggle('hidden', !isLogin);
+  document.getElementById('signupForm').classList.toggle('hidden', isLogin);
+  clearAuthError();
+}
+function showAuthError(msg) { const el = document.getElementById('authError'); el.textContent = msg; el.classList.add('visible'); }
+function clearAuthError() { document.getElementById('authError').classList.remove('visible'); }
+function handleLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  clearAuthError();
+  if (!email || !password) { showAuthError('Please fill in all fields.'); return; }
+  const users = getUsers(); const user = users[email];
+  if (!user) { showAuthError('No account found. Please sign up first.'); return; }
+  if (user.password !== btoa(password)) { showAuthError('Incorrect password.'); return; }
+  loginSuccess({ email, name: user.name });
+}
+function handleSignup() {
+  const name = document.getElementById('signupName').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+  const password = document.getElementById('signupPassword').value;
+  const confirm = document.getElementById('signupConfirm').value;
+  clearAuthError();
+  if (!name||!email||!password||!confirm) { showAuthError('Please fill in all fields.'); return; }
+  if (!email.includes('@')) { showAuthError('Enter a valid email.'); return; }
+  if (password.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
+  if (password !== confirm) { showAuthError('Passwords do not match.'); return; }
+  const users = getUsers();
+  if (users[email]) { showAuthError('Account already exists.'); return; }
+  users[email] = { name, password: btoa(password) };
+  saveUsers(users);
+  loginSuccess({ email, name });
+}
+function loginSuccess(user) {
+  sessionStorage.setItem('deepMediScanCurrentUser', JSON.stringify(user));
+  document.getElementById('authOverlay').classList.add('hidden');
+  updateUserUI(user);
+}
+function handleLogout() {
+  sessionStorage.removeItem('deepMediScanCurrentUser');
+  sessionStorage.removeItem('deepMediScanHistory');
+  document.getElementById('authOverlay').classList.remove('hidden');
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginPassword').value = '';
+  switchTab('login'); renderSidebarHistory(); newChat();
+}
+function updateUserUI(user) {
+  const initial = user.name ? user.name.charAt(0).toUpperCase() : '?';
+  const firstName = user.name ? user.name.split(' ')[0] : 'Guest';
+  // legacy elements (hidden)
+  document.getElementById('userAvatar').textContent = initial;
+  document.getElementById('userName').textContent = firstName;
+  // Claude.ai style icon bar avatar
+  const iconAvatar = document.getElementById('iconUserAvatar');
+  if (iconAvatar) iconAvatar.textContent = initial;
+  // Welcome heading
+  const heading = document.getElementById('welcomeHeading');
+  if (heading) heading.textContent = `Welcome, ${firstName}`;
+  // Popup email
+  const popupEmail = document.getElementById('popupEmail');
+  if (popupEmail) popupEmail.textContent = user.email || '';
+}
+
+// ── INIT ──
+const currentUser = getCurrentUser();
+if (currentUser) { document.getElementById('authOverlay').classList.add('hidden'); updateUserUI(currentUser); }
+renderSidebarHistory();
+// Fetch live model info from API
+fetchModelsInfo();
+</script>
+
+<!-- CHATBOT WINDOW (right slide-in panel) -->
+<div class="chatbot-window" id="chatbotWindow">
+  <div class="cb-header">
+    <div class="cb-avatar">🤖</div>
+    <div class="cb-header-info"><h4>DeepMediScan Assistant</h4><p>● Online — Skin Expert</p></div>
+    <div class="cb-online"></div>
+    <button class="btn-cb-close" onclick="toggleChatbot()">✕</button>
+  </div>
+  <div class="cb-lang-toggle">
+    <button class="cb-lang-btn active" id="langEn" onclick="setLang('en')">🇬🇧 English</button>
+    <button class="cb-lang-btn" id="langUr" onclick="setLang('ur')">🇵🇰 اردو</button>
+  </div>
+  <div class="cb-messages" id="cbMessages"></div>
+  <div class="cb-quick-replies" id="cbQuickReplies">
+    <button class="cb-quick-btn" onclick="sendQuick(this)">What is Skin Cancer?</button>
+    <button class="cb-quick-btn" onclick="sendQuick(this)">Acne treatment tips</button>
+    <button class="cb-quick-btn" onclick="sendQuick(this)">Psoriasis symptoms</button>
+    <button class="cb-quick-btn" onclick="sendQuick(this)">مہاسوں کا علاج</button>
+  </div>
+  <div class="cb-input-row">
+    <textarea class="cb-input" id="cbInput" placeholder="Ask about skin diseases..." rows="1"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatbot();}"></textarea>
+    <button class="btn-cb-send" id="btnCbSend" onclick="sendChatbot()">➤</button>
+  </div>
+</div>
+
+<!-- ============ SETTINGS PANEL ============ -->
+<div class="settings-overlay" id="settingsOverlay" onclick="closeSettings()"></div>
+<aside class="settings-panel" id="settingsPanel" role="dialog" aria-label="Settings" aria-modal="true">
+  <div class="settings-head">
+    <div class="settings-head-title">
+      <svg class="settings-head-logo"><use href="#dms-logo"/></svg>
+      <div>
+        <h3>Settings</h3>
+        <span>DeepMediScan preferences</span>
+      </div>
+    </div>
+    <button class="settings-close" onclick="closeSettings()" aria-label="Close settings">✕</button>
+  </div>
+
+  <div class="settings-body">
+
+    <!-- Appearance -->
+    <div class="settings-group">
+      <div class="settings-group-label">Appearance</div>
+      <div class="settings-row">
+        <div class="settings-row-text">
+          <span class="settings-row-title">Theme</span>
+          <span class="settings-row-sub">Switch between dark and light</span>
+        </div>
+        <div class="seg-control" id="segTheme">
+          <button class="seg-btn" data-theme-val="dark" onclick="setThemeFromSettings('dark')">Dark</button>
+          <button class="seg-btn" data-theme-val="light" onclick="setThemeFromSettings('light')">Light</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analysis -->
+    <div class="settings-group">
+      <div class="settings-group-label">Analysis</div>
+      <div class="settings-row">
+        <div class="settings-row-text">
+          <span class="settings-row-title">Default model</span>
+          <span class="settings-row-sub">Model selected for new analyses</span>
+        </div>
+        <select id="setDefaultModel" class="settings-select" onchange="saveDefaultModel(this.value)">
+          <option value="auto">Auto (Best / Ensemble)</option>
+          <option value="efficientnet_b0">EfficientNet-B0</option>
+          <option value="efficientnet_b4">EfficientNet-B4</option>
+          <option value="resnet50">ResNet-50</option>
+          <option value="mobilenetv3_large_100">MobileNetV3-Large</option>
+          <option value="ensemble">Ensemble (All Models)</option>
+        </select>
+      </div>
+      <div class="settings-note">
+        Predictions below 35% confidence are shown but flagged <strong>Low Confidence</strong>; below 15% they are marked <strong>Inconclusive</strong>. These models are intentionally cautious — always confirm with a dermatologist.
+      </div>
+    </div>
+
+    <!-- Connection -->
+    <div class="settings-group">
+      <div class="settings-group-label">Connection</div>
+      <div class="settings-row">
+        <div class="settings-row-text">
+          <span class="settings-row-title">API address</span>
+          <span class="settings-row-sub">Where the FastAPI backend is running</span>
+        </div>
+      </div>
+      <div class="settings-inline">
+        <input type="text" id="setApiUrl" class="settings-input" placeholder="http://localhost:8000" />
+        <button class="settings-btn-sm" onclick="saveApiUrl()">Save</button>
+      </div>
+      <div class="settings-status" id="setApiStatus"><span class="settings-dot" id="setApiDot"></span><span id="setApiStatusText">Checking…</span></div>
+    </div>
+
+    <!-- Data -->
+    <div class="settings-group">
+      <div class="settings-group-label">Data</div>
+      <div class="settings-row">
+        <div class="settings-row-text">
+          <span class="settings-row-title">Analysis history</span>
+          <span class="settings-row-sub" id="setHistoryCount">Stored locally on this device</span>
+        </div>
+        <button class="settings-btn-danger" onclick="clearAllHistory()">Clear history</button>
+      </div>
+    </div>
+
+    <!-- About -->
+    <div class="settings-group">
+      <div class="settings-group-label">About</div>
+      <div class="settings-about">
+        <svg class="settings-about-logo"><use href="#dms-logo"/></svg>
+        <div class="settings-about-text">
+          <strong>DeepMediScan</strong>
+          <span>22-class dermoscopic skin image classification</span>
+          <span>Research prototype · v2.0 · Not for clinical use</span>
+          <span class="settings-about-credit">Muhammad Shahid Asghar · Supervised by Dr. Akmal Khan<br>The Islamia University of Bahawalpur</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</aside>
+
+<script>
+let cbOpen=false, cbLang='en', cbHistory=[], cbTyping=false;
+
+// System prompts are defined server-side in main.py /chat endpoint
+
+function toggleChatbot() {
+  cbOpen = !cbOpen;
+  document.getElementById('chatbotWindow').classList.toggle('open', cbOpen);
+  // highlight icon bar chat button
+  const iconChatBtns = document.querySelectorAll('.icon-btn[onclick="toggleChatbot()"]');
+  iconChatBtns.forEach(b => b.classList.toggle('active', cbOpen));
+  if (cbOpen && cbHistory.length === 0) showWelcome();
+  if (cbOpen) setTimeout(() => document.getElementById('cbInput').focus(), 300);
+}
+
+function setLang(lang) {
+  cbLang = lang;
+  document.getElementById('langEn').classList.toggle('active', lang==='en');
+  document.getElementById('langUr').classList.toggle('active', lang==='ur');
+  document.getElementById('cbInput').placeholder = lang==='ur' ? 'جلد کی بیماری کے بارے میں پوچھیں...' : 'Ask about skin diseases...';
+  const qr = document.getElementById('cbQuickReplies');
+  qr.innerHTML = lang==='ur'
+    ? `<button class="cb-quick-btn" onclick="sendQuick(this)">جلد کا کینسر کیا ہے؟</button><button class="cb-quick-btn" onclick="sendQuick(this)">مہاسوں کا علاج</button><button class="cb-quick-btn" onclick="sendQuick(this)">چنبل کی علامات</button><button class="cb-quick-btn" onclick="sendQuick(this)">لیوپس کیا ہے؟</button>`
+    : `<button class="cb-quick-btn" onclick="sendQuick(this)">What is Skin Cancer?</button><button class="cb-quick-btn" onclick="sendQuick(this)">Acne treatment tips</button><button class="cb-quick-btn" onclick="sendQuick(this)">Psoriasis symptoms</button><button class="cb-quick-btn" onclick="sendQuick(this)">What is Lupus?</button>`;
+}
+
+function showWelcome() {
+  appendBotMsg(cbLang==='ur'
+    ? 'السلام علیکم! میں DeepMediScan اسسٹنٹ ہوں۔ یہ سسٹم 22 اقسام کی جلد کی بیماریاں شناخت کر سکتا ہے۔ کوئی بھی سوال پوچھیں 🌿'
+    : 'Hello! I\'m DeepMediScan Assistant 👋 I can identify 22 skin conditions including Skin Cancer, Psoriasis, Acne, and more. Ask me anything about skin diseases or upload an image for analysis!');
+}
+
+function sendQuick(btn) { sendMessage(btn.textContent.trim()); }
+
+/* ══════════════════════════════
+   MAIN-AREA AI CHAT (integrated into the main input bar)
+   Questions typed in the main input are answered right here in the
+   main chat area — no separate chatbot panel needed.
+══════════════════════════════ */
+let mainChatHistory = [];
+let mainChatTyping  = false;
+let lastDiagnosis   = null;  // remembers the most recent image diagnosis for follow-up Q&A
+
+// Called after an image is analysed: remember the result so follow-up
+// questions ("tell me about it") are answered about the predicted condition.
+function rememberDiagnosis(data) {
+  if (!data) return;
+  lastDiagnosis = data;
+}
+function diagnosisContext() {
+  const d = lastDiagnosis;
+  if (!d) return '';
+  const top3 = (d.top3 || []).map(t => `${t.name} (${(t.confidence).toFixed(1)}%)`).join(', ');
+  const conf = (typeof d.confidence === 'number') ? d.confidence.toFixed(1) + '%' : 'low';
+  const flag = d.is_inconclusive ? ' The result was inconclusive (very low confidence).'
+            : d.is_low_confidence ? ' This was a low-confidence result.' : '';
+  return `[Context: The user just analysed a skin image. The model's top prediction was "${d.predicted_class}" at ${conf} confidence.${flag} `
+    + (top3 ? `Top-3: ${top3}. ` : '')
+    + `Answer the user's question about "${d.predicted_class}" (the predicted skin condition itself) — not about the DeepMediScan app — and remind them this is a research prototype, so a dermatologist should confirm.]`;
+}
+
+function handleMainSend() {
+  const input = document.getElementById('inputText');
+  const text  = (input.value || '').trim();
+
+  // If an image is attached, analyze it now (this is the "send" the user grants).
+  if (currentImageBlob) {
+    const ws = document.getElementById('welcomeState');
+    if (ws) ws.style.display = 'none';
+    appendUserBubble(currentImageBlob, currentImageURL);
+    // optional note typed alongside the image
+    const note = text;
+    input.value = '';
+    clearPendingImage_keepBlob();
+    analyzeImage(note);
+    return;
+  }
+
+  if (!text || mainChatTyping) return;
+  input.value = '';
+  askMainChat(text);
+}
+
+// Remove the chip UI but keep currentImageBlob so analyzeImage can use it
+function clearPendingImage_keepBlob() {
+  const chip = document.getElementById('pendingImageChip');
+  if (chip) chip.remove();
+  const ph = document.getElementById('inputText');
+  if (ph) ph.placeholder = 'Ask about skin diseases, or tap + to upload an image…';
+}
+
+function focusMainInput() {
+  const input = document.getElementById('inputText');
+  if (input) { input.focus(); input.scrollIntoView({behavior:'smooth', block:'center'}); }
+}
+
+async function askMainChat(text) {
+  const ws = document.getElementById('welcomeState');
+  if (ws) ws.style.display = 'none';
+
+  appendMainUserText(text);
+
+  // If a recent image diagnosis exists, prepend it as context to THIS message
+  // (only for the request to the model — the visible bubble stays clean) so
+  // follow-ups like "tell me about it" are answered about the predicted disease.
+  const ctx = diagnosisContext();
+  const contentForModel = ctx ? `${ctx}\n\nUser question: ${text}` : text;
+  mainChatHistory.push({ role: 'user', content: contentForModel });
+
+  const typingId = showMainTyping();
+  mainChatTyping = true;
+  const sendBtn = document.getElementById('btnSendMain');
+  if (sendBtn) sendBtn.disabled = true;
+
+  try {
+    const response = await fetch(`${API_URL}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages : mainChatHistory.slice(-10),
+        language : (typeof cbLang !== 'undefined' ? cbLang : 'en')
+      })
+    });
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.detail || 'Server error');
+    }
+    const data = await response.json();
+    removeMainTyping(typingId);
+    const reply = data.reply || 'Sorry, I could not get a response.';
+    appendMainAiText(reply);
+    mainChatHistory.push({ role: 'assistant', content: reply });
+    saveChatToHistory(text, reply);
+  } catch(err) {
+    removeMainTyping(typingId);
+    const msg = err && err.message ? err.message : 'Unknown error';
+    appendMainAiText(`⚠️ Chat error: ${msg}\n\nIf this mentions GROQ_API_KEY, check your .env file. If it mentions the server being unreachable, make sure main.py is running on port 8000.`);
+  }
+  mainChatTyping = false;
+  if (sendBtn) sendBtn.disabled = false;
+}
+
+function appendMainUserText(text) {
+  const chatArea = document.getElementById('chatArea');
+  const div = document.createElement('div');
+  div.className = 'msg msg-user';
+  div.innerHTML = `<div class="msg-user-bubble" style="border-radius:16px 16px 4px 16px;"><div class="msg-user-info"><div class="msg-user-filename ${scriptClass(text)}" style="max-width:none;white-space:normal;">${escHtml(text)}</div><div class="msg-user-size">You asked</div></div></div>`;
+  chatArea.appendChild(div);
+  scrollBottom();
+}
+function appendMainAiText(text) {
+  const chatArea = document.getElementById('chatArea');
+  const div = document.createElement('div');
+  div.className = 'msg msg-ai';
+  div.innerHTML = `<div class="msg-ai-row"><div class="msg-ai-avatar"><svg class="dms-logo-svg"><use href="#dms-logo"/></svg></div><div class="msg-ai-content"><div class="ai-answer-text ${scriptClass(text)}">${fmtText(text)}</div></div></div>`;
+  chatArea.appendChild(div);
+  scrollBottom();
+}
+function showMainTyping() {
+  const chatArea = document.getElementById('chatArea');
+  const id = 'main-typing-' + Date.now();
+  const div = document.createElement('div');
+  div.className = 'msg msg-ai'; div.id = id;
+  div.innerHTML = `<div class="msg-ai-row"><div class="msg-ai-avatar"><svg class="dms-logo-svg"><use href="#dms-logo"/></svg></div><div class="msg-ai-content"><div class="cb-typing"><span></span><span></span><span></span></div></div></div>`;
+  chatArea.appendChild(div); scrollBottom(); return id;
+}
+function removeMainTyping(id) { const el = document.getElementById(id); if (el) el.remove(); }
+
+function sendChatbot() {
+  const input = document.getElementById('cbInput');
+  const text = input.value.trim();
+  if (!text || cbTyping) return;
+  input.value = '';
+  sendMessage(text);
+}
+
+async function sendMessage(text) {
+  appendUserMsg(text);
+  cbHistory.push({ role: 'user', content: text });
+  const typingId = showTyping();
+  cbTyping = true;
+  document.getElementById('btnCbSend').disabled = true;
+  try {
+    // Call our FastAPI backend /chat — avoids browser CORS with Anthropic
+    const response = await fetch(`${API_URL}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages : cbHistory.slice(-10),
+        language : cbLang
+      })
+    });
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.detail || 'Server error');
+    }
+    const data = await response.json();
+    removeTyping(typingId);
+    const reply = data.reply || 'Sorry, I could not get a response.';
+    appendBotMsg(reply);
+    cbHistory.push({ role: 'assistant', content: reply });
+  } catch(err) {
+    removeTyping(typingId);
+    // Show the REAL error so it's possible to diagnose what went wrong
+    // (e.g. Groq API key missing/invalid, model deprecated, rate limit hit)
+    // instead of always blaming "server not running", which is misleading
+    // when the server IS running but the /chat call itself failed.
+    const msg = err && err.message ? err.message : 'Unknown error';
+    appendBotMsg(`⚠️ Chat error: ${msg}\n\nIf this mentions GROQ_API_KEY, check your .env file. If this mentions the server being unreachable, make sure main.py is running on port 8000.`);
+  }
+  cbTyping = false;
+  document.getElementById('btnCbSend').disabled = false;
+}
+
+function appendUserMsg(text) {
+  const m = document.getElementById('cbMessages');
+  const div = document.createElement('div');
+  div.className = 'cb-msg user';
+  div.innerHTML = `<div class="cb-msg-bubble ${scriptClass(text)}">${escHtml(text)}</div><div class="cb-msg-avatar">👤</div>`;
+  m.appendChild(div); scrollCb();
+}
+function appendBotMsg(text) {
+  const m = document.getElementById('cbMessages');
+  const div = document.createElement('div');
+  div.className = 'cb-msg bot';
+  div.innerHTML = `<div class="cb-msg-avatar"><svg class="dms-logo-svg"><use href="#dms-logo"/></svg></div><div class="cb-msg-bubble ${scriptClass(text)}">${fmtText(text)}</div>`;
+  m.appendChild(div); scrollCb();
+}
+function showTyping() {
+  const m = document.getElementById('cbMessages');
+  const id = 'typing-' + Date.now();
+  const div = document.createElement('div');
+  div.className = 'cb-msg bot'; div.id = id;
+  div.innerHTML = `<div class="cb-msg-avatar"><svg class="dms-logo-svg"><use href="#dms-logo"/></svg></div><div class="cb-msg-bubble"><div class="cb-typing"><span></span><span></span><span></span></div></div>`;
+  m.appendChild(div); scrollCb(); return id;
+}
+function removeTyping(id) { const el = document.getElementById(id); if (el) el.remove(); }
+function scrollCb() { const m = document.getElementById('cbMessages'); m.scrollTop = m.scrollHeight; }
+function escHtml(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtText(t) {
+  let h = escHtml(t);
+  // A line that is just **Heading** (optionally followed by " — text") becomes a styled heading
+  h = h.replace(/^\s*\*\*(.+?)\*\*\s*$/gm, '<div class="ai-heading">$1</div>');
+  h = h.replace(/^\s*\*\*(.+?)\*\*\s*[—:-]\s*/gm, '<div class="ai-heading">$1</div>');
+  // Remaining inline **bold**
+  h = h.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  // Bullet points starting with - or *
+  h = h.replace(/^\s*[-*]\s+(.*)$/gm, '<div class="ai-bullet">• $1</div>');
+  h = h.replace(/\n/g, '<br>');
+  // collapse stray <br> right after a heading/bullet block
+  h = h.replace(/(<\/div>)<br>/g, '$1');
+  return h;
+}
+
+// Detect dominant script so we can apply the right font + direction.
+// Returns 'urdu' (Arabic script), 'hindi' (Devanagari), or '' (Latin/other).
+function scriptClass(t) {
+  if (!t) return '';
+  const urdu  = (t.match(/[\u0600-\u06FF\u0750-\u077F]/g) || []).length;
+  const hindi = (t.match(/[\u0900-\u097F]/g) || []).length;
+  const latin = (t.match(/[A-Za-z]/g) || []).length;
+  if (urdu  > 3 && urdu  >= hindi && urdu  >= latin) return 'urdu';
+  if (hindi > 3 && hindi >= urdu  && hindi >= latin) return 'hindi';
+  return '';
+}
+
+// Chatbot panel opens from icon bar — no FAB badge needed
+</script>
+</body>
+</html>

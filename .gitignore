@@ -1,0 +1,65 @@
+# ============================================================
+#  DeepMediScan — .gitignore
+#  Files/folders that must NOT be uploaded to GitHub
+# ============================================================
+
+# ---- SECRETS (NEVER commit) ----
+.env
+*.env
+!.env.example          # but DO keep the template
+*.key
+secrets.json
+
+# ---- Trained model weights (too large for GitHub, host externally) ----
+*.pth
+*.pt
+*.ckpt
+*.onnx
+*.h5
+retrained_models/
+checkpoints/
+models/
+
+# ---- Dataset (too large; host externally / keep local) ----
+SkinDisease_dataset_resplit/
+dataset/
+data/
+*.zip
+*.tar
+*.tar.gz
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# ---- Virtual environments ----
+venv/
+env/
+ENV/
+.venv/
+env.bak/
+
+# ---- Logs & temp ----
+*.log
+training_log_*.txt
+*.tmp
+report_figures/         # regenerate with generate_figures.py if needed
+
+# ---- OS / Editor junk ----
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+
+# ---- Node (if you ever add a JS build step) ----
+node_modules/
